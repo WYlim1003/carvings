@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rumah Penghulu Abu Seman - Carving Motifs</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <div class="logo-group">
+          <div class="logo-text">
+            <div class="logo-title" data-i18n="siteTitle">
+              Rumah Penghulu Abu Seman - Carving Motifs
+            </div>
+            <div class="logo-subtitle" data-i18n="siteSubtitle">
+               Exploring Malay wood carving traditions
+            </div>
+          </div>
+        </div>
+
+        <div class="lang-picker">
+          <button class="lang-btn active" data-lang="en"><i class="fas fa-globe"></i> English</button>
+          <button class="lang-btn" data-lang="ms"><i class="fas fa-globe"></i> Melayu</button>
+          <button class="lang-btn" data-lang="zh"><i class="fas fa-globe"></i> 中文</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-text">
+            <h1 data-i18n="heroTitle">
+              Malay Wood Carving at Rumah Penghulu Abu Seman
+            </h1>
+              <p class="lead" data-i18n="heroLead1"></p>
+              <p class="lead" data-i18n="heroLead2"></p>
+              <p class="lead" data-i18n="heroLead3"></p>
+              <p class="note" data-i18n="heroNote"></p>
+          </div>
+          <div class="hero-card">
+            <div class="hero-card-inner">
+              <p class="hero-card-title" data-i18n="heroCardTitle"></p>
+              <ul>
+                <li data-i18n="heroCardItem1">Flora - Plants, leaves, flowers</li>
+                <li data-i18n="heroCardItem2">Fauna - Birds, fish, insects</li>
+                <li data-i18n="heroCardItem3">Cosmos - Sun, moon, stars</li>
+                <li data-i18n="heroCardItem4">Geometric - Shapes and symmetric patterns</li>
+              </ul>
+              <p class="hero-card-footer" data-i18n="heroCardFooter"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="motif-section">
+        <div class="container">
+          <h2 data-i18n="motifSectionTitle">Carving Motif Categories</h2>
+          <p class="section-intro" data-i18n="motifSectionIntro"></p>
+
+          <div class="card-grid">
+            <a href="motif-flora.html" class="motif-card flora">
+              <div class="motif-label" data-i18n="motifFloraTitle">Flora</div>
+              <p data-i18n="motifFloraDesc"></p>
+            </a>
+
+            <a href="motif-fauna.html" class="motif-card fauna">
+              <div class="motif-label" data-i18n="motifFaunaTitle">Fauna</div>
+              <p data-i18n="motifFaunaDesc"></p>
+            </a>
+
+            <a href="motif-cosmos.html" class="motif-card cosmos">
+              <div class="motif-label" data-i18n="motifCosmosTitle">Cosmos</div>
+              <p data-i18n="motifCosmosDesc"></p>
+            </a>
+
+            <a href="motif-geometric.html" class="motif-card geometric">
+              <div class="motif-label" data-i18n="motifGeometricTitle">Geometric</div>
+              <p data-i18n="motifGeometricDesc"></p>
+            </a>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="interaction-section">
+        <div class="container">
+          <h2 data-i18n="interactionTitle">Interact With the Exhibition</h2>
+          <p class="section-intro" data-i18n="interactionIntro"></p>
+
+          <div class="card-grid two-column">
+            <a
+            href="https://docs.google.com/forms/d/16utQ6j-jOOymM-u_OnStW7v8WxXpVo8dsPJca0ePiyQ/viewform?usp=sf_link"
+            class="action-card feedback"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
+              <div class="action-icon">📝</div>
+              <div>
+                <h3 data-i18n="feedbackTitle">Feedback Form</h3>
+                <p data-i18n="feedbackDesc"></p>
+              </div>
+            </a>
+
+            <a 
+            href="quiz.html"
+            class="action-card quiz"
+            >
+              <div class="action-icon">❓</div>
+              <div>
+                <h3 id="quiz-card" data-i18n="quizTitle">Carving Quiz</h3>
+                <p data-i18n="quizDesc"></p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div class="footer-line">
+          <span data-i18n="footerTextLead">Preserving Cultural Heritage with</span>
+            <i class="fas fa-heart footer-heart"></i>
+        </div>
+        <p class="footer-subtext">
+          <span class="footer-info-icon"><i class="fas fa-info"></i></span>
+          <span data-i18n="footerSubtext">Traditional Malay Architecture Education Initiative</span>
+        </p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

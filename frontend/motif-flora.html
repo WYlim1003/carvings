@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flora Motif – Rumah Penghulu Abu Seman</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+  </head>
+  <body>
+
+    <header class="site-header">
+      <div class="container header-content">
+        <div class="logo-group">
+          <div class="logo-text">
+            <div class="logo-title" data-i18n="siteTitle"></div>
+            <div class="logo-subtitle" data-i18n="siteSubtitle"></div>
+          </div>
+        </div>
+
+        <div class="lang-picker">
+          <button class="lang-btn active" data-lang="en"><i class="fas fa-globe"></i> English</button>
+          <button class="lang-btn" data-lang="ms"><i class="fas fa-globe"></i> Melayu</button>
+          <button class="lang-btn" data-lang="zh"><i class="fas fa-globe"></i> 中文</button>
+        </div>
+        
+      </div>
+    </header>
+
+    <main class="detail-hero">
+      <div class="container">
+        <div class="breadcrumb">
+          <a href="index.html" data-i18n="backToMain">Back to main page</a>
+          <span> / </span>
+          <span data-i18n="floraBreadcrumb">Flora Motif</span>
+        </div>
+
+        <div class="detail-layout">
+          <div class="detail-text">
+            <div class="badge badge-flora">
+              🌿 <span data-i18n="floraBreadcrumb">Flora Motif</span>
+            </div>
+            <h1 class="detail-title" data-i18n="floraTitle"></h1>
+            <p class="detail-tagline" data-i18n="floraTagline"></p>
+            <div class="detail-box">
+              <p data-i18n="floraIntro1"></p>
+              <p data-i18n="floraIntro2"></p>
+              <p data-i18n="floraIntro3"></p>
+            </div>
+            <a href="index.html" class="back-link">
+              ← <span data-i18n="backToMain"></span>
+            </a>
+          </div>
+
+          <model-viewer
+            src="/models/flora.glb" 
+            alt="A 3D model of the Flora Carving Motif"
+            camera-controls
+            auto-rotate
+            shadow-intensity="1"
+            style="width: 100%; height: 400px; border: none;"
+          ></model-viewer>
+    
+          <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div class="footer-line">
+          <span data-i18n="footerTextLead"></span><i class="fas fa-heart footer-heart"></i>
+        </div>
+        <p class="footer-subtext">
+          <span class="footer-info-icon">
+            <i class="fas fa-info"></i>
+          </span>
+          <span data-i18n="footerSubtext"></span>
+        </p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
+

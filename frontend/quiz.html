@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carving Quiz – Rumah Penghulu Abu Seman</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-content">
+      <div class="logo-group">
+        <div class="logo-text">
+          <div class="logo-title" data-i18n="siteTitle"></div>
+          <div class="logo-subtitle" data-i18n="siteSubtitle"></div>
+        </div>
+      </div>
+
+      <div class="lang-picker">
+        <button class="lang-btn active" data-lang="en"><i class="fas fa-globe"></i> English</button>
+        <button class="lang-btn" data-lang="ms"><i class="fas fa-globe"></i> Melayu</button>
+        <button class="lang-btn" data-lang="zh"><i class="fas fa-globe"></i> 中文</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container quiz-container">
+        <div class="quiz-header">
+          <h1 data-i18n="quizPageTitle">Carving Motifs Quiz</h1>
+          <p data-i18n="quizPageSubtitle"></p>
+        </div>
+
+        <div class="user-id-wrapper">
+          <label for="user-id-input" data-i18n="userIdLabel"></label>
+          <input
+            type="text"
+            id="user-id-input"
+            data-i18n-placeholder="userIdPlaceholder"
+            placeholder="Enter your initials or ticket number"
+          />
+          <small data-i18n="userIdHelp"></small>
+        </div>
+
+        <div id="quiz-content">
+
+          <div class="quiz-actions">
+            <button class="btn btn-primary" id="submit-btn" data-i18n="submitQuiz">Submit Quiz</button>
+            <a href="index.html" class="btn btn-secondary" data-i18n="backToMain">Back to Main</a>
+          </div>
+        </div>
+
+        <div id="results-container" class="results-container hidden">
+          <h2 data-i18n="quizResults">Quiz Results</h2>
+          <div class="score-display" id="score-display">0/4</div>
+          <p class="results-message" id="results-message"></p>
+
+          <div class="results-details">
+            <h3 data-i18n="yourAnswers">Your Answers</h3>
+            <div id="answers-list"></div>
+          </div>
+
+          <div class="quiz-actions">
+            <button class="btn btn-primary" id="retake-btn" data-i18n="retakeQuiz">Retake Quiz</button>
+            <a href="index.html" class="btn btn-secondary" data-i18n="backToMain">Back to Main</a>
+          </div>
+        </div>
+
+        <div class="admin-actions">
+            <a href="/export/submissions" id="export-btn" class="btn btn-warning hidden" target="_blank" data-i18n="exportData">
+                <i class="fas fa-download"></i> Export Quiz Data
+            </a>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div class="footer-line">
+        <span data-i18n="footerTextLead"></span>
+        <i class="fas fa-heart footer-heart"></i>
+      </div>
+      <p class="footer-subtext">
+        <span class="footer-info-icon"><i class="fas fa-info"></i></span>
+        <span data-i18n="footerSubtext"></span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="quiz-question.js"></script>
+  <script src="quiz.js"></script>
+  
+</body>
+</html>
