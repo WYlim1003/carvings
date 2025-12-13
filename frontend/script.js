@@ -327,6 +327,63 @@ const translations = {
   },
 };
 
+const QUIZ_QUESTIONS = [
+    {
+        name: "q1",
+        textKey: "q1Text", 
+        options: {
+            a: "q1OptionA", 
+            b: "q1OptionB", 
+            c: "q1OptionC",
+            d: "q1OptionD"
+        },
+        correct: "b"
+    },
+    {
+        name: "q2",
+        textKey: "q2Text", 
+        options: {
+            a: "q2OptionA",
+            b: "q2OptionB", 
+            c: "q2OptionC",
+            d: "q2OptionD"
+        },
+        correct: "b"
+    },
+    {
+        name: "q3",
+        textKey: "q3Text", 
+        options: {
+            a: "q3OptionA",
+            b: "q3OptionB", 
+            c: "q3OptionC",
+            d: "q3OptionD"
+        },
+        correct: "a"
+    },
+    {
+        name: "q4",
+        textKey: "q4Text", 
+        options: {
+            a: "q4OptionA",
+            b: "q4OptionB", 
+            c: "q4OptionC",
+            d: "q4OptionD"
+        },
+        correct: "c"
+    }
+];
+
+const CORRECT_ANSWERS = QUIZ_QUESTIONS.reduce((acc, q) => {
+    acc[q.name] = q.correct;
+    return acc;
+}, {});
+
+const ADMIN_KEY_SUBMISSIONS = 'A'; // For Submissions Export
+const ADMIN_KEY_STATS = 'B';      // For Stats Export
+const EXPORT_BUTTON_SUBMISSIONS_ID = 'export-submissions-btn';
+const EXPORT_BUTTON_STATS_ID = 'export-stats-btn';
+
 function applyLanguage(lang) {
   const dict = translations[lang];
   if (!dict) return;
@@ -358,39 +415,67 @@ function applyLanguage(lang) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // --- Language setup ---
-  const storedLang =
-    (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
-  applyLanguage(storedLang);
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // 4.1. Language Setup (Initialization and Click Handlers)
+    const storedLang =
+        (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
+    applyLanguage(storedLang);
 
-  document.querySelectorAll('.lang-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const lang = btn.getAttribute('data-lang');
-      applyLanguage(lang);
-    });
-  });
-
-  // --- Quiz card click tracking ---
-  const quizCard = document.querySelector("a.action-card.quiz");
-  if (quizCard) {
-    quizCard.addEventListener("click", async(e) => {
-      e.preventDefault(); // Stop immediate navigation
-
-      try {
-        const res = await fetch("/save-click", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clicked: true })
+    document.querySelectorAll('.lang-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const lang = btn.getAttribute('data-lang');
+            applyLanguage(lang);
         });
-        const data = await res.json();
-        console.log("Click saved:", data);
-      } catch (err) {
-        console.error("Error saving click:", err);
-      } finally {
-        // Navigate to quiz page regardless of success/failure
-        window.location.href = quizCard.href;
-      }
     });
-  }
+
+    // 4.2. Quiz Card Click Tracking (Fetch call)
+    const quizCard = document.querySelector("a.action-card.quiz");
+    if (quizCard) {
+        quizCard.addEventListener("click", async(e) => {
+            e.preventDefault(); 
+            
+            try {
+                const res = await fetch("/save-click", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clicked: true })
+                });
+                const data = await res.json();
+                console.log("Click saved:", data);
+            } catch (err) {
+                console.error("Error saving click:", err);
+            } finally {
+                window.location.href = quizCard.href; // Navigate regardless of fetch status
+            }
+        });
+    }
+
+    // 4.3. Admin Keydown Listener (The shortcut logic)
+    document.addEventListener("keydown", (event) => {
+        const isCtrlOrCmd = event.ctrlKey || event.metaKey; 
+        const isShift = event.shiftKey;
+        const key = event.key.toUpperCase();
+        
+        // Ctrl + Shift + A
+        if (isCtrlOrCmd && isShift && key === ADMIN_KEY_SUBMISSIONS) {
+            event.preventDefault();
+            const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
+            if (exportBtn) {
+                exportBtn.classList.toggle('hidden');
+                console.log(exportBtn.classList.contains('hidden') ? "Submissions hidden." : "Submissions revealed!");
+            }
+        }
+        
+        // Ctrl + Shift + B
+        if (isCtrlOrCmd && isShift && key === ADMIN_KEY_STATS) {
+            event.preventDefault();
+            const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
+            if (exportBtn) {
+                exportBtn.classList.toggle('hidden');
+                console.log(exportBtn.classList.contains('hidden') ? "Stats hidden." : "Stats revealed!");
+            }
+        }
+    });
 });
+

@@ -52,6 +52,33 @@ app.get("/export/submissions", async (req, res) => {
     }
 });
 
+app.get("/export/stats", async (req, res) => {
+    try {
+        const stats = await fs.readJson(statsFile).catch(() => {
+            console.warn("Stats file not found, returning default stats.");
+            return {
+                totalSubmissions: 0,
+                sumOfPercentages: 0,
+                averagePercentage: 0,
+                completionRate: 0
+            };
+        });
+
+        const statsArray = [stats];
+
+        const parser = new Parser();
+        const csv = parser.parse(statsArray);
+
+        // Set headers for file download
+        res.header("Content-Type", "text/csv");
+        res.attachment("quiz_stats.csv"); // New file name
+        res.send(csv); 
+    } catch (err) {
+        console.error("Error reading quiz stats:", err);
+        res.status(500).json({ status: "error", message: "Failed to retrieve quiz statistics." });
+    }
+});
+
 app.post("/save-click", async (req, res) => {
     try {
         const clicksData = await fs.readJson(clicksFile).catch(() => ({ totalClicks: 0 }));

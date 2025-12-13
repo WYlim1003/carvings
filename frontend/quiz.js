@@ -1,45 +1,30 @@
-const ADMIN_KEY_SEQUENCE = 'A'; 
-const EXPORT_BUTTON_ID = 'export-btn';
-
-document.addEventListener("DOMContentLoaded", () => {
-  generateQuizQuestions();
-  document.getElementById("submit-btn").addEventListener("click", submitQuiz);
-  document.getElementById("retake-btn").addEventListener("click", resetQuiz);
-
-  document.addEventListener("keydown", (event) => {
-      const isCtrlOrCmd = event.ctrlKey || event.metaKey; 
-      const isShift = event.shiftKey;
-      const isSecretKey = event.key.toUpperCase() === ADMIN_KEY_SEQUENCE; 
-
-      if (isCtrlOrCmd && isShift && isSecretKey) {
-          event.preventDefault(); 
-          const exportBtn = document.getElementById(EXPORT_BUTTON_ID);
-          
-          if (exportBtn) {
-              exportBtn.classList.toggle('hidden');
-              console.log(exportBtn.classList.contains('hidden') 
-                          ? "Admin export button hidden." 
-                          : "Admin export button revealed!");
-          }
-      }
-  });
-
-});
-
 function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
+    if (!quizContent || typeof QUIZ_QUESTIONS === 'undefined') {
+        console.error("Critical: QUIZ_QUESTIONS data is not accessible.");
+        // Display fallback error text to the user instead of nothing
+        if (quizContent) quizContent.innerHTML = "Error loading quiz. Data missing.";
+        return;
+    }
     let html = '';
+
+    const currentLang = (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
+    const dict = translations[currentLang];
 
     QUIZ_QUESTIONS.forEach((q, index) => {
         const questionNumber = index + 1;
+        const questionTextKey = q.textKey;
+        const questionText = dict[questionTextKey] || questionTextKey;
         
         let optionsHtml = '';
-        for (const [value, text] of Object.entries(q.options)) {
+        for (const [value, optionKey] of Object.entries(q.options)) { 
+            const optionText = dict[optionKey] || optionKey; 
+            
             optionsHtml += `
                 <li class="option-item">
                     <label class="option-label">
                         <input type="radio" name="${q.name}" value="${value}" />
-                        <span class="option-text">${text}</span>
+                        <span class="option-text" data-i18n="${optionKey}">${optionText}</span>
                     </label>
                 </li>
             `;
@@ -47,17 +32,26 @@ function generateQuizQuestions() {
 
         html += `
             <div class="question-block" data-question="${questionNumber}">
-                <span class="question-number">Question ${questionNumber}</span>
-                <div class="question-text">${q.text}</div>
-                <ul class="options-list">
-                    ${optionsHtml}
-                </ul>
-            </div>
+              <span class="question-number">
+                <span data-i18n="questionLabel">${dict.questionLabel || 'Question'}</span> 
+                  ${questionNumber}
+              </span>
+              <div class="question-text" data-i18n="${questionTextKey}">${questionText}</div>
+              <ul class="options-list">
+                  ${optionsHtml}
+              </ul>
+          </div>
         `;
     });
 
     const quizActions = quizContent.querySelector('.quiz-actions');
-    quizActions.insertAdjacentHTML('beforebegin', html);
+    if (quizActions) {
+        quizActions.insertAdjacentHTML('beforebegin', html);
+    } else {
+        // Fallback insertion if .quiz-actions isn't found
+        quizContent.insertAdjacentHTML('beforeend', html);
+    }
+    applyLanguage(currentLang);
 }
 
 
@@ -164,3 +158,11 @@ async function resetQuiz() {
   document.querySelectorAll("input[type=radio]").forEach(r => (r.checked = false));
   document.getElementById("user-id-input").value = "";
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("submit-btn")) {
+        generateQuizQuestions();
+        document.getElementById("submit-btn").addEventListener("click", submitQuiz);
+        document.getElementById("retake-btn").addEventListener("click", resetQuiz);
+    }
+});
