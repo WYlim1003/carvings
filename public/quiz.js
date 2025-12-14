@@ -2,7 +2,6 @@ function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
     if (!quizContent || typeof QUIZ_QUESTIONS === 'undefined') {
         console.error("Critical: QUIZ_QUESTIONS data is not accessible.");
-        // Display fallback error text to the user instead of nothing
         if (quizContent) quizContent.innerHTML = "Error loading quiz. Data missing.";
         return;
     }
@@ -88,7 +87,7 @@ async function submitQuiz() {
     };
 
   try {
-    const response = await fetch("/submit-quiz", {
+    const response = await fetch("/api/submit-quiz", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -141,7 +140,7 @@ function showResults(score, answers) {
 
 async function resetQuiz() {
   try {
-        const response = await fetch("/save-click", {
+        const response = await fetch("/api/save-click", {
             method: "POST",
             headers: { "Content-Type": "application/json" }
         });
