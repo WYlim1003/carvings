@@ -1,3 +1,4 @@
+const ADMIN_PASSWORD = "heritage2024";
 const translations = {
   en: {
     siteTitle: 'Rumah Penghulu Abu Seman - Carving Motifs',
@@ -451,29 +452,50 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 4.3. Admin Keydown Listener (The shortcut logic)
     document.addEventListener("keydown", (event) => {
         const isCtrlOrCmd = event.ctrlKey || event.metaKey; 
         const isShift = event.shiftKey;
         const key = event.key.toUpperCase();
         
-        // Ctrl + Shift + A
+        // Ctrl + Shift + A (Submissions Export)
         if (isCtrlOrCmd && isShift && key === ADMIN_KEY_SUBMISSIONS) {
             event.preventDefault();
             const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
             if (exportBtn) {
-                exportBtn.classList.toggle('hidden');
-                console.log(exportBtn.classList.contains('hidden') ? "Submissions hidden." : "Submissions revealed!");
+                const isVisible = !exportBtn.classList.contains('hidden');
+                
+                if (isVisible) {
+                    exportBtn.classList.add('hidden');
+                } else {
+                    const password = prompt("Enter admin password:");
+                    if (password === ADMIN_PASSWORD) {
+                        exportBtn.classList.remove('hidden');
+                        alert("Export access granted!");
+                    } else {
+                        alert("Incorrect password!");
+                    }
+                }
             }
         }
         
-        // Ctrl + Shift + B
+        // Ctrl + Shift + B (Stats Export)
         if (isCtrlOrCmd && isShift && key === ADMIN_KEY_STATS) {
             event.preventDefault();
             const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
             if (exportBtn) {
-                exportBtn.classList.toggle('hidden');
-                console.log(exportBtn.classList.contains('hidden') ? "Stats hidden." : "Stats revealed!");
+                const isVisible = !exportBtn.classList.contains('hidden');
+                
+                if (isVisible) {
+                    exportBtn.classList.add('hidden');
+                } else {
+                    const password = prompt("Enter admin password:");
+                    if (password === ADMIN_PASSWORD) {
+                        exportBtn.classList.remove('hidden');
+                        alert("Export access granted!");
+                    } else {
+                        alert("Incorrect password!");
+                    }
+                }
             }
         }
     });
