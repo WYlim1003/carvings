@@ -133,18 +133,18 @@ const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
 // Initialize database tables
 async function initDatabase() {
   try {
-    // Create submissions table
+    // Create submissions table with correct column name
     await sql`
       CREATE TABLE IF NOT EXISTS quiz_submissions (
         id SERIAL PRIMARY KEY,
-        visitor_id TEXT,
+        visitor_id VARCHAR(50),
         score INTEGER,
-        percentage REAL,
-        question1 TEXT,
-        question2 TEXT,
-        question3 TEXT,
-        question4 TEXT,
-        timestamp TIMESTAMP DEFAULT NOW()
+        percentage NUMERIC(5, 2),
+        question1 VARCHAR(10),
+        question2 VARCHAR(10),
+        question3 VARCHAR(10),
+        question4 VARCHAR(10),
+        submission_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
@@ -153,7 +153,7 @@ async function initDatabase() {
       CREATE TABLE IF NOT EXISTS quiz_clicks (
         id SERIAL PRIMARY KEY,
         total_clicks INTEGER DEFAULT 0,
-        updated_at TIMESTAMP DEFAULT NOW()
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
@@ -185,9 +185,9 @@ app.get("/api/export/submissions", async (req, res) => {
         question2,
         question3,
         question4,
-        timestamp
+        submission_time as timestamp
       FROM quiz_submissions
-      ORDER BY timestamp DESC
+      ORDER BY submission_time DESC
     `;
 
     if (submissions.length === 0) {
