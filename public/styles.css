@@ -655,6 +655,9 @@ h2 {
   justify-content: center;
   margin-top: 2rem;
   margin-bottom: 2rem;
+  text-align: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn {
@@ -687,6 +690,7 @@ h2 {
   background: var(--bg-card);
   color: var(--primary-dark);
   border: 2px solid var(--border-soft);
+
 }
 
 .btn-secondary:hover {
@@ -874,7 +878,7 @@ h2 {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .header-content {
     display: flex;
     justify-content: space-between;
