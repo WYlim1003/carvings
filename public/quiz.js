@@ -53,15 +53,10 @@ function generateQuizQuestions() {
     applyLanguage(currentLang);
 }
 
-function calculateScore(answers) {
-    let score = 0;
-    for (let q in CORRECT_ANSWERS) {
-        if (answers[q] === CORRECT_ANSWERS[q]) score++;
-    }
-    return score;
-}
 
 async function submitQuiz() {
+    const visitorID = document.getElementById("user-id-input").value.trim() || `anon-${Math.floor(Math.random() * 1000000)}`;
+
     const answers = {
       q1: document.querySelector("input[name='q1']:checked")?.value || null,
       q2: document.querySelector("input[name='q2']:checked")?.value || null,
@@ -69,52 +64,41 @@ async function submitQuiz() {
       q4: document.querySelector("input[name='q4']:checked")?.value || null
     };
 
-    const questions = ['q1', 'q2', 'q3', 'q4'];
-    if (questions.some(q => answers[q] === null)) {
+    if (!answers.q1 || !answers.q2 || !answers.q3 || !answers.q4) {
       alert("Please answer all questions before submitting.");
       return;
     }
 
-    let visitorID = document.getElementById("user-id-input").value.trim();
-    visitorID = visitorID.replace(/[^a-zA-Z0-9\s-]/g, '').substring(0, 50);
-    if (visitorID.length === 0) {
-        visitorID = `anon-${Math.floor(Math.random() * 1000000)}`;
+    let score = 0;
+    for (let q in CORRECT_ANSWERS) {
+      if (answers[q] === CORRECT_ANSWERS[q]) score++;
     }
 
-    let score = calculateScore(answers);
-
-    const normalizedAnswers = {
-        q1: answers.q1.toUpperCase(),
-        q2: answers.q2.toUpperCase(),
-        q3: answers.q3.toUpperCase(),
-        q4: answers.q4.toUpperCase()
-    };
-
+    const percentage = (score / 4) * 100;
+    // Send to server
     const payload = {
-        visitorID: visitorID,
-        score: score,
-        ...normalizedAnswers 
+      visitorID,
+      question1: answers.q1.toUpperCase(),
+      question2: answers.q2.toUpperCase(),
+      question3: answers.q3.toUpperCase(),
+      question4: answers.q4.toUpperCase(),
+      score,
+      percentage,
     };
 
-    try {
-        const response = await fetch("/api/server", { 
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-             const errorBody = await response.json();
-             console.error('Server submission failed:', response.status, errorBody.error);
-             throw new Error('Failed to save submission.');
-        }
-
-        showResults(score, answers);
-
-    } catch (err) {
-        console.error("Error submitting quiz:", err);
-        alert("Failed to submit quiz. Please try again.");
-    }
+  try {
+    const response = await fetch("/api/submit-quiz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    console.log("Saved:", data);
+    showResults(score, answers);
+  } catch (err) {
+    console.error("Error submitting quiz:", err);
+    alert("Failed to submit quiz. Please try again.");
+  }
 
 }
 
@@ -155,18 +139,29 @@ function showResults(score, answers) {
 }
 
 async function resetQuiz() {
-    try {
-        await fetch("/.netlify/functions/save-click", { // *** MODIFIED URL ***
+  try {
+        const response = await fetch("/api/save-click", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: 'retake', visitorID: document.getElementById("user-id-input").value.trim() }) 
+            headers: { "Content-Type": "application/json" }
         });
+        const data = await response.json();
+        console.log("Retake registered. Total Clicks:", data.totalClicks);
     } catch (err) {
-        console.warn("Failed to register retake click:", err);
+        console.error("Failed to register retake click:", err);
+        // We allow the quiz to reset even if the click fails, but log the error
     }
-    
-    document.getElementById("results-container").classList.add("hidden");
-    document.getElementById("quiz-content").classList.remove("hidden");
-    document.querySelectorAll("input[type=radio]").forEach(r => (r.checked = false));
-    document.getElementById("user-id-input").value = "";
+
+  document.getElementById("results-container").classList.add("hidden");
+  document.getElementById("quiz-content").classList.remove("hidden");
+
+  document.querySelectorAll("input[type=radio]").forEach(r => (r.checked = false));
+  document.getElementById("user-id-input").value = "";
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("submit-btn")) {
+        generateQuizQuestions();
+        document.getElementById("submit-btn").addEventListener("click", submitQuiz);
+        document.getElementById("retake-btn").addEventListener("click", resetQuiz);
+    }
+});
