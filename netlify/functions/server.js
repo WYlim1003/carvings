@@ -133,7 +133,7 @@ const sql = neon(process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL);
 // Initialize database tables
 async function initDatabase() {
   try {
-    // Create submissions table with correct column name
+    // Create submissions table
     await sql`
       CREATE TABLE IF NOT EXISTS quiz_submissions (
         id SERIAL PRIMARY KEY,
@@ -161,9 +161,10 @@ async function initDatabase() {
     const clicks = await sql`SELECT * FROM quiz_clicks LIMIT 1`;
     if (clicks.length === 0) {
       await sql`INSERT INTO quiz_clicks (total_clicks) VALUES (0)`;
+      console.log('Initialized quiz_clicks table with 0');
     }
 
-    console.log('Database initialized');
+    console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database init error:', err);
   }
@@ -177,7 +178,7 @@ app.get("/api/export/submissions", async (req, res) => {
   try {
     const submissions = await sql`
       SELECT 
-        id as submission_index,
+        id,
         visitor_id,
         score,
         percentage,
@@ -185,13 +186,15 @@ app.get("/api/export/submissions", async (req, res) => {
         question2,
         question3,
         question4,
-        submission_time as timestamp
+        submission_time
       FROM quiz_submissions
       ORDER BY submission_time DESC
     `;
 
+    console.log(`Found ${submissions.length} submissions`);
+
     if (submissions.length === 0) {
-      return res.status(404).send("No submission data to export.");
+      return res.status(200).send("No submission data available yet. Submit a quiz first.");
     }
 
     const parser = new Parser();
@@ -202,30 +205,42 @@ app.get("/api/export/submissions", async (req, res) => {
     res.send(csv);
   } catch (err) {
     console.error("Error exporting submissions:", err);
-    res.status(500).json({ status: "error", message: "Failed to export data." });
+    res.status(500).json({ 
+      status: "error", 
+      message: "Failed to export data.",
+      error: err.message 
+    });
   }
 });
 
 // Export stats
 app.get("/api/export/stats", async (req, res) => {
   try {
-    const [stats] = await sql`
+    // Get submission stats
+    const submissionStats = await sql`
       SELECT 
         COUNT(*) as total_submissions,
-        AVG(percentage) as average_percentage,
-        (SELECT total_clicks FROM quiz_clicks LIMIT 1) as total_clicks
+        AVG(percentage) as average_percentage
       FROM quiz_submissions
     `;
 
-    const totalSubmissions = parseInt(stats.total_submissions) || 0;
-    const totalClicks = parseInt(stats.total_clicks) || 0;
+    // Get clicks
+    const clicksData = await sql`SELECT total_clicks FROM quiz_clicks LIMIT 1`;
+
+    const totalSubmissions = parseInt(submissionStats[0]?.total_submissions) || 0;
+    const averagePercentage = parseFloat(submissionStats[0]?.average_percentage) || 0;
+    const totalClicks = parseInt(clicksData[0]?.total_clicks) || 0;
+    
+    // Calculate completion rate
     const completionRate = totalClicks > 0 ? (totalSubmissions / totalClicks) * 100 : 0;
+
+    console.log('Stats:', { totalSubmissions, totalClicks, completionRate });
 
     const statsData = [{
       totalSubmissions,
-      averagePercentage: parseFloat(stats.average_percentage) || 0,
+      averagePercentage: averagePercentage.toFixed(2),
       totalClicks,
-      completionRate
+      completionRate: completionRate.toFixed(2)
     }];
 
     const parser = new Parser();
@@ -236,31 +251,40 @@ app.get("/api/export/stats", async (req, res) => {
     res.send(csv);
   } catch (err) {
     console.error("Error exporting stats:", err);
-    res.status(500).json({ status: "error", message: "Failed to export stats." });
+    res.status(500).json({ 
+      status: "error", 
+      message: "Failed to export stats.",
+      error: err.message 
+    });
   }
 });
 
 // Save click
 app.post("/api/save-click", async (req, res) => {
   try {
+    // Update clicks
     await sql`
       UPDATE quiz_clicks 
       SET total_clicks = total_clicks + 1, 
-          updated_at = NOW()
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = 1
     `;
 
-    const [result] = await sql`SELECT total_clicks FROM quiz_clicks LIMIT 1`;
-    const totalClicks = parseInt(result.total_clicks);
+    // Get updated values
+    const clicksResult = await sql`SELECT total_clicks FROM quiz_clicks WHERE id = 1`;
+    const totalClicks = parseInt(clicksResult[0]?.total_clicks) || 0;
 
-    const [stats] = await sql`SELECT COUNT(*) as count FROM quiz_submissions`;
-    const totalSubmissions = parseInt(stats.count);
+    const submissionsResult = await sql`SELECT COUNT(*) as count FROM quiz_submissions`;
+    const totalSubmissions = parseInt(submissionsResult[0]?.count) || 0;
 
     const completionRate = totalClicks > 0 ? (totalSubmissions / totalClicks) * 100 : 0;
+
+    console.log('Click saved:', { totalClicks, totalSubmissions, completionRate });
 
     res.json({ 
       status: "success", 
       totalClicks,
-      completionRate 
+      completionRate: completionRate.toFixed(2)
     });
   } catch (err) {
     console.error("Error saving click:", err);
@@ -278,6 +302,8 @@ app.post("/api/submit-quiz", async (req, res) => {
 
     const visitorID = data.visitorID || `anon-${Math.floor(Math.random() * 1000000)}`;
 
+    console.log('Submitting quiz:', { visitorID, score: data.score, percentage: data.percentage });
+
     // Insert submission
     await sql`
       INSERT INTO quiz_submissions 
@@ -287,24 +313,28 @@ app.post("/api/submit-quiz", async (req, res) => {
          ${data.question1}, ${data.question2}, ${data.question3}, ${data.question4})
     `;
 
-    // Get stats
-    const [stats] = await sql`
+    // Get updated stats
+    const stats = await sql`
       SELECT 
         COUNT(*) as total_submissions,
         AVG(percentage) as average_percentage
       FROM quiz_submissions
     `;
 
-    const [clicks] = await sql`SELECT total_clicks FROM quiz_clicks LIMIT 1`;
-    const totalClicks = parseInt(clicks.total_clicks);
-    const totalSubmissions = parseInt(stats.total_submissions);
+    const clicks = await sql`SELECT total_clicks FROM quiz_clicks WHERE id = 1`;
+    
+    const totalClicks = parseInt(clicks[0]?.total_clicks) || 0;
+    const totalSubmissions = parseInt(stats[0]?.total_submissions) || 0;
+    const averagePercentage = parseFloat(stats[0]?.average_percentage) || 0;
     const completionRate = totalClicks > 0 ? (totalSubmissions / totalClicks) * 100 : 0;
+
+    console.log('Quiz submitted successfully:', { totalSubmissions, averagePercentage, completionRate });
 
     res.json({
       status: "success",
       totalSubmissions,
-      averagePercentage: parseFloat(stats.average_percentage) || 0,
-      completionRate
+      averagePercentage: averagePercentage.toFixed(2),
+      completionRate: completionRate.toFixed(2)
     });
   } catch (err) {
     console.error("Error submitting quiz:", err);
