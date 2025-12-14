@@ -878,7 +878,7 @@ h2 {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .header-content {
     display: flex;
     justify-content: space-between;
@@ -896,10 +896,7 @@ h2 {
   .hero-text h1 {
     font-size: 1.6rem;
   }
-}
 
-/* Responsive */
-@media (max-width: 640px) {
   .quiz-container {
     padding: 0 0.5rem;
   }
@@ -910,9 +907,27 @@ h2 {
 
   .quiz-actions {
     flex-direction: column;
+    width: 100%;
   }
 
   .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .lang-picker {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .lang-btn {
+    padding: 0.4rem 0.8rem;
+    min-width: 90px;
+    font-size: 0.85rem;
+  }
+
+  .lang-btn i {
+    font-size: 0.8rem;
   }
 }
