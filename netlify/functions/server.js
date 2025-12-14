@@ -118,6 +118,3 @@ app.post("/api/submit-quiz", async (req, res) => {
 });
 
 exports.handler = serverless(app);
-
-netlify/functions/server.js
-Unified Backend for Quiz Submissions, Clicks, and Exports (using Express + Neon DB)
