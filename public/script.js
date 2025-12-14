@@ -1,4 +1,3 @@
-const ADMIN_PASSWORD = "heritage2024";
 const translations = {
   en: {
     siteTitle: 'Rumah Penghulu Abu Seman - Carving Motifs',
@@ -457,45 +456,23 @@ document.addEventListener("DOMContentLoaded", () => {
         const isShift = event.shiftKey;
         const key = event.key.toUpperCase();
         
-        // Ctrl + Shift + A (Submissions Export)
+        // Ctrl + Shift + A
         if (isCtrlOrCmd && isShift && key === ADMIN_KEY_SUBMISSIONS) {
             event.preventDefault();
             const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
             if (exportBtn) {
-                const isVisible = !exportBtn.classList.contains('hidden');
-                
-                if (isVisible) {
-                    exportBtn.classList.add('hidden');
-                } else {
-                    const password = prompt("Enter admin password:");
-                    if (password === ADMIN_PASSWORD) {
-                        exportBtn.classList.remove('hidden');
-                        alert("Export access granted!");
-                    } else {
-                        alert("Incorrect password!");
-                    }
-                }
+                exportBtn.classList.toggle('hidden');
+                console.log(exportBtn.classList.contains('hidden') ? "Submissions hidden." : "Submissions revealed!");
             }
         }
         
-        // Ctrl + Shift + B (Stats Export)
+        // Ctrl + Shift + B
         if (isCtrlOrCmd && isShift && key === ADMIN_KEY_STATS) {
             event.preventDefault();
             const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
             if (exportBtn) {
-                const isVisible = !exportBtn.classList.contains('hidden');
-                
-                if (isVisible) {
-                    exportBtn.classList.add('hidden');
-                } else {
-                    const password = prompt("Enter admin password:");
-                    if (password === ADMIN_PASSWORD) {
-                        exportBtn.classList.remove('hidden');
-                        alert("Export access granted!");
-                    } else {
-                        alert("Incorrect password!");
-                    }
-                }
+                exportBtn.classList.toggle('hidden');
+                console.log(exportBtn.classList.contains('hidden') ? "Stats hidden." : "Stats revealed!");
             }
         }
     });
