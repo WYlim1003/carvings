@@ -2,9 +2,8 @@
   "name": "carvings",
   "version": "1.0.0",
   "description": "Carvings QR",
-  "main": "netlify/functions/server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node netlify/functions/server.js"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

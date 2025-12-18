@@ -118,7 +118,6 @@
 // });
 
 // exports.handler = serverless(app);
-
 const express = require("express");
 const serverless = require("serverless-http");
 const { Parser } = require('json2csv');

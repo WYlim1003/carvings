@@ -436,7 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault(); 
             
             try {
-                const res = await fetch("/save-click", {
+                const res = await fetch("/api/save-click", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ clicked: true })
@@ -450,29 +450,38 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+    const ADMIN_PASSWORD = "abc123";
 
     document.addEventListener("keydown", (event) => {
         const isCtrlOrCmd = event.ctrlKey || event.metaKey; 
         const isShift = event.shiftKey;
         const key = event.key.toUpperCase();
         
-        // Ctrl + Shift + A
-        if (isCtrlOrCmd && isShift && key === ADMIN_KEY_SUBMISSIONS) {
+        // Check for Shortcut A (Submissions) or B (Stats)
+        if (isCtrlOrCmd && isShift && (key === ADMIN_KEY_SUBMISSIONS || key === ADMIN_KEY_STATS)) {
             event.preventDefault();
-            const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
-            if (exportBtn) {
-                exportBtn.classList.toggle('hidden');
-                console.log(exportBtn.classList.contains('hidden') ? "Submissions hidden." : "Submissions revealed!");
-            }
-        }
-        
-        // Ctrl + Shift + B
-        if (isCtrlOrCmd && isShift && key === ADMIN_KEY_STATS) {
-            event.preventDefault();
-            const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
-            if (exportBtn) {
-                exportBtn.classList.toggle('hidden');
-                console.log(exportBtn.classList.contains('hidden') ? "Stats hidden." : "Stats revealed!");
+
+            // Ask for password
+            const userInput = prompt("Please enter the Admin Password to access exports:");
+            
+            if (userInput === ADMIN_PASSWORD) {
+                if (key === ADMIN_KEY_SUBMISSIONS) {
+                    const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
+                    if (exportBtn) {
+                        exportBtn.classList.toggle('hidden');
+                        console.log("Submissions toggled.");
+                    }
+                }
+                
+                if (key === ADMIN_KEY_STATS) {
+                    const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
+                    if (exportBtn) {
+                        exportBtn.classList.toggle('hidden');
+                        console.log("Stats toggled.");
+                    }
+                }
+            } else {
+                alert("Incorrect password.");
             }
         }
     });
