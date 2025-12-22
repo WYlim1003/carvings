@@ -12,6 +12,6 @@
     "json2csv": "^5.0.7"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   }
 }
