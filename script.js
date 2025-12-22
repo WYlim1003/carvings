@@ -418,8 +418,7 @@ function applyLanguage(lang) {
 document.addEventListener("DOMContentLoaded", () => {
     
     // 4.1. Language Setup (Initialization and Click Handlers)
-    const storedLang =
-        (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
+    const storedLang = (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
     applyLanguage(storedLang);
 
     document.querySelectorAll('.lang-btn').forEach((btn) => {
@@ -450,37 +449,32 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    const ADMIN_PASSWORD = "abc123";
+    const ADMIN_PASSWORD = "heritage2025";
 
     document.addEventListener("keydown", (event) => {
         const isCtrlOrCmd = event.ctrlKey || event.metaKey; 
         const isShift = event.shiftKey;
         const key = event.key.toUpperCase();
         
-        // Check for Shortcut A (Submissions) or B (Stats)
-        if (isCtrlOrCmd && isShift && (key === ADMIN_KEY_SUBMISSIONS || key === ADMIN_KEY_STATS)) {
+        if (isCtrlOrCmd && isShift && key === 'A') {
             event.preventDefault();
 
-            // Ask for password
             const userInput = prompt("Please enter the Admin Password to access exports:");
             
             if (userInput === ADMIN_PASSWORD) {
-                if (key === ADMIN_KEY_SUBMISSIONS) {
-                    const exportBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
-                    if (exportBtn) {
-                        exportBtn.classList.toggle('hidden');
-                        console.log("Submissions toggled.");
-                    }
+                const submissionsBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
+                const statsBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
+                
+                if (submissionsBtn) {
+                    submissionsBtn.classList.remove('hidden');
+                }
+                if (statsBtn) {
+                    statsBtn.classList.remove('hidden');
                 }
                 
-                if (key === ADMIN_KEY_STATS) {
-                    const exportBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
-                    if (exportBtn) {
-                        exportBtn.classList.toggle('hidden');
-                        console.log("Stats toggled.");
-                    }
-                }
-            } else {
+                console.log("Admin buttons revealed.");
+                alert("Admin access granted. Export buttons are now visible.");
+            } else if (userInput !== null) { 
                 alert("Incorrect password.");
             }
         }
