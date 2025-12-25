@@ -47,12 +47,10 @@ function generateQuizQuestions() {
     if (quizActions) {
         quizActions.insertAdjacentHTML('beforebegin', html);
     } else {
-        // Fallback insertion if .quiz-actions isn't found
         quizContent.insertAdjacentHTML('beforeend', html);
     }
     applyLanguage(currentLang);
 }
-
 
 async function submitQuiz() {
     const visitorID = document.getElementById("user-id-input").value.trim() || `anon-${Math.floor(Math.random() * 1000000)}`;
@@ -75,7 +73,7 @@ async function submitQuiz() {
     }
 
     const percentage = (score / 4) * 100;
-    // Send to server
+    
     const payload = {
       visitorID,
       question1: answers.q1.toUpperCase(),
@@ -86,28 +84,48 @@ async function submitQuiz() {
       percentage,
     };
 
-try {
-  const response = await fetch("/api/submit-quiz", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json", 
-      "Accept": "application/json" 
-    },
-    body: JSON.stringify(payload)
-  });
-  
-  // Check if the response is actually JSON before parsing
-  const contentType = response.headers.get("content-type");
-  if (contentType && contentType.indexOf("application/json") !== -1) {
-    const data = await response.json();
-    console.log("Saved:", data);
-    showResults(score, answers);
-  } else {
-    throw new Error("Server did not return JSON");
-  }
-} catch (err) {
-  console.error("Error submitting quiz:", err);
-  alert("Failed to submit quiz. Technical details: " + err.message);
+    try {
+      console.log("Submitting quiz with payload:", payload);
+      
+      const response = await fetch("/api/submit-quiz", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Accept": "application/json" 
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
+      
+      // Check if response is ok
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server returned error:", errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+      
+      // Check if the response is actually JSON
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const data = await response.json();
+        console.log("Quiz submitted successfully:", data);
+        
+        if (data.success) {
+          showResults(score, answers);
+        } else {
+          throw new Error(data.error || "Submission failed");
+        }
+      } else {
+        const text = await response.text();
+        console.error("Server did not return JSON. Response:", text);
+        throw new Error("Server did not return JSON response");
+      }
+    } catch (err) {
+      console.error("Error submitting quiz:", err);
+      alert("Failed to submit quiz. Error: " + err.message + "\n\nPlease check your internet connection and try again.");
+    }
 }
 
 function showResults(score, answers) {
@@ -129,35 +147,34 @@ function showResults(score, answers) {
 
   answersList.innerHTML = `
     <p><strong>Q1:</strong> Your answer: ${answers.q1.toUpperCase()} —
-      ${answers.q1 === CORRECT_ANSWERS.q1 ? "✔ Correct" : "✖ Wrong (Correct: B)"}
+      ${answers.q1 === CORRECT_ANSWERS.q1 ? "✓ Correct" : "✗ Wrong (Correct: B)"}
     </p>
 
     <p><strong>Q2:</strong> Your answer: ${answers.q2.toUpperCase()} —
-      ${answers.q2 === CORRECT_ANSWERS.q2 ? "✔ Correct" : "✖ Wrong (Correct: B)"}
+      ${answers.q2 === CORRECT_ANSWERS.q2 ? "✓ Correct" : "✗ Wrong (Correct: B)"}
     </p>
 
     <p><strong>Q3:</strong> Your answer: ${answers.q3.toUpperCase()} —
-      ${answers.q3 === CORRECT_ANSWERS.q3 ? "✔ Correct" : "✖ Wrong (Correct: A)"}
+      ${answers.q3 === CORRECT_ANSWERS.q3 ? "✓ Correct" : "✗ Wrong (Correct: A)"}
     </p>
 
     <p><strong>Q4:</strong> Your answer: ${answers.q4.toUpperCase()} —
-      ${answers.q4 === CORRECT_ANSWERS.q4 ? "✔ Correct" : "✖ Wrong (Correct: C)"}
+      ${answers.q4 === CORRECT_ANSWERS.q4 ? "✓ Correct" : "✗ Wrong (Correct: C)"}
     </p>
   `;
 }
 
 async function resetQuiz() {
   try {
-        const response = await fetch("/api/save-click", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" }
-        });
-        const data = await response.json();
-        console.log("Retake registered. Total Clicks:", data.totalClicks);
-    } catch (err) {
-        console.error("Failed to register retake click:", err);
-        // We allow the quiz to reset even if the click fails, but log the error
-    }
+    const response = await fetch("/api/save-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await response.json();
+    console.log("Retake registered. Total Clicks:", data.totalClicks);
+  } catch (err) {
+    console.error("Failed to register retake click:", err);
+  }
 
   document.getElementById("results-container").classList.add("hidden");
   document.getElementById("quiz-content").classList.remove("hidden");
@@ -172,5 +189,4 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("submit-btn").addEventListener("click", submitQuiz);
         document.getElementById("retake-btn").addEventListener("click", resetQuiz);
     }
-  });
-}
+});
