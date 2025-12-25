@@ -89,7 +89,7 @@ async function submitQuiz() {
   try {
     const response = await fetch("/api/submit-quiz", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify(payload)
     });
     const data = await response.json();
