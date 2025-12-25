@@ -5,20 +5,14 @@
     "SUPABASE_ANON_KEY"
   ],
   "functions": {
-    "index.js": {
+    "api/index.js": {
       "runtime": "nodejs22.x"
     }
   },
-  "builds": [
-    {
-      "src": "index.js",
-      "use": "@vercel/node@3.x"
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/index.js"
+      "dest": "api/index.js"
     },
     {
       "src": "/(.*)",
