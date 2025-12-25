@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "env": [
-    "SUPABASE_URL",
-    "SUPABASE_ANON_KEY"
-  ],
+  "env": {
+    "SUPABASE_URL": "@supabase-url",
+    "SUPABASE_ANON_KEY": "@supabase-anon-key"
+  },
   "functions": {
     "api/index.js": {
       "runtime": "nodejs22.x"
