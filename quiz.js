@@ -86,20 +86,28 @@ async function submitQuiz() {
       percentage,
     };
 
-  try {
-    const response = await fetch("/api/submit-quiz", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(payload)
-    });
+try {
+  const response = await fetch("/api/submit-quiz", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json", 
+      "Accept": "application/json" 
+    },
+    body: JSON.stringify(payload)
+  });
+  
+  // Check if the response is actually JSON before parsing
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.indexOf("application/json") !== -1) {
     const data = await response.json();
     console.log("Saved:", data);
     showResults(score, answers);
-  } catch (err) {
-    console.error("Error submitting quiz:", err);
-    alert("Failed to submit quiz. Please try again.");
+  } else {
+    throw new Error("Server did not return JSON");
   }
-
+} catch (err) {
+  console.error("Error submitting quiz:", err);
+  alert("Failed to submit quiz. Technical details: " + err.message);
 }
 
 function showResults(score, answers) {
@@ -164,4 +172,5 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("submit-btn").addEventListener("click", submitQuiz);
         document.getElementById("retake-btn").addEventListener("click", resetQuiz);
     }
-});
+  });
+}
