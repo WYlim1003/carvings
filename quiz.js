@@ -113,87 +113,167 @@ async function submitQuiz() {
         console.log("Quiz submitted successfully:", data);
         
         if (data.success) {
+          // Show results after successful submission
           showResults(score, answers);
         } else {
-          // Show detailed error from server
-          const errorMsg = data.error || "Submission failed";
-          const errorCode = data.errorCode ? ` (Code: ${data.errorCode})` : '';
-          throw new Error(errorMsg + errorCode);
+          // Even if submission failed, show results locally
+          console.warn("Submission to server failed, but showing results locally");
+          showResults(score, answers);
+          
+          // Show a warning but don't block the results
+          setTimeout(() => {
+            const errorMsg = data.error || "Submission failed";
+            alert("Note: Your results were saved locally, but there was an issue saving to the server.\n\n" + errorMsg);
+          }, 500);
         }
       } else {
         const text = await response.text();
         console.error("Server did not return JSON. Response:", text);
+        // Still show results even if response format is wrong
+        showResults(score, answers);
         throw new Error("Server did not return JSON response");
       }
     } catch (err) {
       console.error("Error submitting quiz:", err);
       console.error("Full error:", err);
       
-      // Show more detailed error message
-      let errorMessage = err.message || "Unknown error occurred";
-      if (errorMessage.includes("Row Level Security") || errorMessage.includes("RLS")) {
-        errorMessage += "\n\nPlease check Supabase RLS policies for the quiz_submissions table.";
-      } else if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
-        errorMessage += "\n\nPlease verify the quiz_submissions table exists in your Supabase database.";
-      }
+      // Show results locally even if submission failed
+      console.log("Showing results locally despite submission error");
+      showResults(score, answers);
       
-      alert("Failed to submit quiz.\n\nError: " + errorMessage + "\n\nCheck the browser console (F12) for more details.");
+      // Show error message after a short delay so results are visible
+      setTimeout(() => {
+        let errorMessage = err.message || "Unknown error occurred";
+        if (errorMessage.includes("Row Level Security") || errorMessage.includes("RLS")) {
+          errorMessage += "\n\nPlease check Supabase RLS policies for the quiz_submissions table.";
+        } else if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
+          errorMessage += "\n\nPlease verify the quiz_submissions table exists in your Supabase database.";
+        }
+        
+        alert("Note: Your results are shown below, but there was an issue saving to the server.\n\nError: " + errorMessage + "\n\nCheck the browser console (F12) for more details.");
+      }, 500);
     }
 }
 
 function showResults(score, answers) {
-  document.getElementById("quiz-content").classList.add("hidden");
-  document.getElementById("results-container").classList.remove("hidden");
+  // Hide quiz content and show results
+  const quizContent = document.getElementById("quiz-content");
+  const resultsContainer = document.getElementById("results-container");
+  
+  if (!quizContent || !resultsContainer) {
+    console.error("Results container or quiz content not found");
+    return;
+  }
 
-  document.getElementById("score-display").textContent = `${score}/4`;
+  quizContent.classList.add("hidden");
+  resultsContainer.classList.remove("hidden");
 
-  const message =
-    score === 4 ? "Excellent! You got all correct!" :
-    score === 3 ? "Great job!" :
-    score === 2 ? "Good try!" :
-    score === 1 ? "Keep learning!" :
-    "Try again!";
+  // Update score display
+  const scoreDisplay = document.getElementById("score-display");
+  if (scoreDisplay) {
+    scoreDisplay.textContent = `${score}/4`;
+  }
 
-  document.getElementById("results-message").textContent = message;
+  // Get current language for translations
+  const currentLang = (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
+  const dict = translations[currentLang] || translations.en;
 
+  // Set result message based on score
+  const resultsMessage = document.getElementById("results-message");
+  if (resultsMessage) {
+    let message = "";
+    if (score === 4) {
+      message = dict.excellentScore || "Excellent! You got all correct!";
+    } else if (score === 3) {
+      message = dict.goodScore || "Great job! You understand the carving motifs well.";
+    } else if (score === 2) {
+      message = dict.averageScore || "Not bad! Review the motifs to improve your score.";
+    } else if (score === 1) {
+      message = dict.lowScore || "Keep learning! Explore the motif pages to learn more.";
+    } else {
+      message = dict.lowScore || "Try again! Explore the motif pages to learn more.";
+    }
+    resultsMessage.textContent = message;
+  }
+
+  // Show detailed answers
   const answersList = document.getElementById("answers-list");
+  if (answersList) {
+    const correctSymbol = "✓";
+    const wrongSymbol = "✗";
+    
+    const questionLabels = [
+      { num: 1, correct: CORRECT_ANSWERS.q1, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q1.toUpperCase() },
+      { num: 2, correct: CORRECT_ANSWERS.q2, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q2.toUpperCase() },
+      { num: 3, correct: CORRECT_ANSWERS.q3, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q3.toUpperCase() },
+      { num: 4, correct: CORRECT_ANSWERS.q4, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q4.toUpperCase() }
+    ];
 
-  answersList.innerHTML = `
-    <p><strong>Q1:</strong> Your answer: ${answers.q1.toUpperCase()} —
-      ${answers.q1 === CORRECT_ANSWERS.q1 ? "✓ Correct" : "✗ Wrong (Correct: B)"}
-    </p>
+    answersList.innerHTML = questionLabels.map((q, index) => {
+      const answerKey = `q${q.num}`;
+      const userAnswer = answers[answerKey];
+      const isCorrect = userAnswer === q.correct;
+      
+      return `
+        <div class="answer-item" style="margin: 10px 0; padding: 10px; border-left: 3px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background: ${isCorrect ? '#e8f5e9' : '#ffebee'};">
+          <p style="margin: 0;">
+            <strong>Question ${q.num}:</strong> 
+            <span style="color: ${isCorrect ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+              ${isCorrect ? correctSymbol + " " + (dict.correctAnswer || "Correct") : wrongSymbol + " " + (dict.incorrectAnswer || "Incorrect")}
+            </span>
+          </p>
+          <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">
+            Your answer: <strong>${userAnswer.toUpperCase()}</strong>
+            ${!isCorrect ? ` | ${q.correctText}` : ''}
+          </p>
+        </div>
+      `;
+    }).join('');
+  }
 
-    <p><strong>Q2:</strong> Your answer: ${answers.q2.toUpperCase()} —
-      ${answers.q2 === CORRECT_ANSWERS.q2 ? "✓ Correct" : "✗ Wrong (Correct: B)"}
-    </p>
-
-    <p><strong>Q3:</strong> Your answer: ${answers.q3.toUpperCase()} —
-      ${answers.q3 === CORRECT_ANSWERS.q3 ? "✓ Correct" : "✗ Wrong (Correct: A)"}
-    </p>
-
-    <p><strong>Q4:</strong> Your answer: ${answers.q4.toUpperCase()} —
-      ${answers.q4 === CORRECT_ANSWERS.q4 ? "✓ Correct" : "✗ Wrong (Correct: C)"}
-    </p>
-  `;
+  // Scroll to results
+  resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function resetQuiz() {
   try {
-    const response = await fetch("/api/save-click", {
+    // Track retake click (non-blocking)
+    fetch("/api/save-click", {
       method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await response.json();
-    console.log("Retake registered. Total Clicks:", data.totalClicks);
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ retake: true })
+    }).then(response => response.json())
+      .then(data => console.log("Retake registered. Total Clicks:", data.totalClicks))
+      .catch(err => console.error("Failed to register retake click:", err));
   } catch (err) {
     console.error("Failed to register retake click:", err);
   }
 
-  document.getElementById("results-container").classList.add("hidden");
-  document.getElementById("quiz-content").classList.remove("hidden");
+  // Hide results and show quiz
+  const resultsContainer = document.getElementById("results-container");
+  const quizContent = document.getElementById("quiz-content");
+  
+  if (resultsContainer) {
+    resultsContainer.classList.add("hidden");
+  }
+  
+  if (quizContent) {
+    quizContent.classList.remove("hidden");
+  }
 
-  document.querySelectorAll("input[type=radio]").forEach(r => (r.checked = false));
-  document.getElementById("user-id-input").value = "";
+  // Reset all radio buttons
+  document.querySelectorAll("input[type=radio]").forEach(r => {
+    r.checked = false;
+  });
+  
+  // Clear user ID input
+  const userIdInput = document.getElementById("user-id-input");
+  if (userIdInput) {
+    userIdInput.value = "";
+  }
+
+  // Scroll back to top of quiz
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Wait for both DOM and scripts to be ready
