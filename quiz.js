@@ -76,65 +76,41 @@ async function submitQuiz() {
     }
 
     const percentage = (score / 4) * 100;
+    const quizContent = document.getElementById("quiz-content");
+    if (quizContent) quizContent.classList.add("hidden");
 
-    const payload = {
-      visitorID,
-      question1: answers.q1.toUpperCase(),
-      question2: answers.q2.toUpperCase(),
-      question3: answers.q3.toUpperCase(),
-      question4: answers.q4.toUpperCase(),
-      score,
-      percentage,
-    };
+    const resultsContainer = document.getElementById("results-container");
+    if (resultsContainer) resultsContainer.classList.remove("hidden");
 
-    try {
-    const response = await fetch("/submit-quiz", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await response.json();
-    console.log("Saved:", data);
-    showResults(score, answers);
-  } catch (err) {
-    console.error("Error submitting quiz:", err);
-    alert("Failed to submit quiz. Please try again.");
-  }
+    const scoreDisplay = document.getElementById("score-display");
+    if (scoreDisplay) scoreDisplay.textContent = `${score}/4`;
 
-    // const quizContent = document.getElementById("quiz-content");
-    // if (quizContent) quizContent.classList.add("hidden");
+    const resultsMessage = document.getElementById("results-message");
+    if (resultsMessage) {
+        let message = "";
+        if (score === 4) message = "Excellent! You got all correct!";
+        else if (score === 3) message = "Great job! You understand the carving motifs well.";
+        else if (score === 2) message = "Not bad! Review the motifs to improve your score.";
+        else message = "Keep learning! Explore the motif pages to learn more.";
+        resultsMessage.textContent = message;
+    }
 
-    // const resultsContainer = document.getElementById("results-container");
-    // if (resultsContainer) resultsContainer.classList.remove("hidden");
+    // Update detailed answers
+    const answersList = document.getElementById("answers-list");
+    if (answersList) {
+        answersList.innerHTML = Object.keys(answers).map((q, index) => {
+            const userAnswer = answers[q].toUpperCase();
+            const correctAnswer = CORRECT_ANSWERS[q].toUpperCase();
+            const isCorrect = userAnswer === correctAnswer;
 
-    // const scoreDisplay = document.getElementById("score-display");
-    // if (scoreDisplay) scoreDisplay.textContent = `${score}/4`;
-
-    // const resultsMessage = document.getElementById("results-message");
-    // if (resultsMessage) {
-    //     let message = "";
-    //     if (score === 4) message = "Excellent! You got all correct!";
-    //     else if (score === 3) message = "Great job! You understand the carving motifs well.";
-    //     else if (score === 2) message = "Not bad! Review the motifs to improve your score.";
-    //     else message = "Keep learning! Explore the motif pages to learn more.";
-    //     resultsMessage.textContent = message;
-    // }
-
-    // // Update detailed answers
-    // const answersList = document.getElementById("answers-list");
-    // if (answersList) {
-    //     answersList.innerHTML = Object.keys(answers).map((q, index) => {
-    //         const userAnswer = answers[q].toUpperCase();
-    //         const correctAnswer = CORRECT_ANSWERS[q].toUpperCase();
-    //         const isCorrect = userAnswer === correctAnswer;
-
-    //         return `
-    //             <div class="answer-item" style="margin:10px 0; padding:10px; border-left:4px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background:#f9f9f9;">
-    //                 <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-    //                 <p>Your answer: ${userAnswer} | Correct: ${correctAnswer}</p>
-    //             </div>
-    //         `;
-    //     }).join('');
+            return `
+                <div class="answer-item" style="margin:10px 0; padding:10px; border-left:4px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background:#f9f9f9;">
+                    <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
+                    <p>Your answer: ${userAnswer} | Correct: ${correctAnswer}</p>
+                </div>
+            `;
+        }).join('');
+      }
 
   }
 
