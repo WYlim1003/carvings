@@ -485,5 +485,98 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+
+    // 4.3. Export Button Handlers - Programmatic CSV Download
+    function downloadCSV(url, filename, button) {
+        // Show loading indicator
+        if (button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            button.style.pointerEvents = 'none';
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        // Try to get error message
+                        return response.text().then(text => {
+                            try {
+                                const json = JSON.parse(text);
+                                throw new Error(json.error || `HTTP error! status: ${response.status}`);
+                            } catch {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                        });
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create a temporary download link
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = filename || `export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    // Restore button
+                    button.innerHTML = originalText;
+                    button.style.pointerEvents = '';
+                })
+                .catch(error => {
+                    console.error('Error downloading CSV:', error);
+                    alert('Failed to download CSV file: ' + error.message + '\n\nPlease check the console for details.');
+                    
+                    // Restore button
+                    button.innerHTML = originalText;
+                    button.style.pointerEvents = '';
+                });
+        } else {
+            // Fallback if button not found
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = filename || `export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl);
+                })
+                .catch(error => {
+                    console.error('Error downloading CSV:', error);
+                    alert('Failed to download CSV file. Please check the console for details.');
+                });
+        }
+    }
+
+    // Add click handlers to export buttons
+    const submissionsBtn = document.getElementById(EXPORT_BUTTON_SUBMISSIONS_ID);
+    if (submissionsBtn) {
+        submissionsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const filename = `quiz-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV('/api/export/submissions', filename, submissionsBtn);
+        });
+    }
+
+    const statsBtn = document.getElementById(EXPORT_BUTTON_STATS_ID);
+    if (statsBtn) {
+        statsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const filename = `quiz-stats-${new Date().toISOString().split('T')[0]}.csv`;
+            downloadCSV('/api/export/stats', filename, statsBtn);
+        });
+    }
 });
 
