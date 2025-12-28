@@ -432,21 +432,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const quizCard = document.querySelector("a.action-card.quiz");
     if (quizCard) {
         quizCard.addEventListener("click", async(e) => {
-            e.preventDefault(); 
-            
+            // Don't prevent default - let the link work normally
+            // Track the click in the background without blocking navigation
             try {
-                const res = await fetch("/api/save-click", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ clicked: true })
-                });
-                const data = await res.json();
-                console.log("Click saved:", data);
+                // Use sendBeacon for better reliability (doesn't block navigation)
+                const data = JSON.stringify({ clicked: true });
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon("/api/save-click", data);
+                } else {
+                    // Fallback to fetch if sendBeacon not available
+                    fetch("/api/save-click", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: data,
+                        keepalive: true // Keep request alive even if page unloads
+                    }).catch(err => console.error("Error saving click:", err));
+                }
             } catch (err) {
                 console.error("Error saving click:", err);
-            } finally {
-                window.location.href = quizCard.href; // Navigate regardless of fetch status
+                // Don't block navigation even if tracking fails
             }
+            // Let the default link behavior proceed
         });
     }
     const ADMIN_PASSWORD = "heritage2025";

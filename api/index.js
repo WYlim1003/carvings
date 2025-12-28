@@ -209,6 +209,8 @@ app.get('/api/export/submissions', async (req, res) => {
     const filename = `quiz-submissions-${new Date().toISOString().split('T')[0]}.csv`;
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     
     // Add BOM for Excel compatibility with special characters and send CSV
     return res.status(200).send('\ufeff' + csv);
@@ -271,6 +273,8 @@ app.get('/api/export/stats', async (req, res) => {
     const filename = `quiz-stats-${new Date().toISOString().split('T')[0]}.csv`;
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     
     // Add BOM for Excel compatibility with special characters and send CSV
     return res.status(200).send('\ufeff' + csv);
