@@ -205,9 +205,8 @@ function showResults(score, answers) {
   // Hide quiz content
   quizContent.classList.add("hidden");
   
-  // Show results container - use both remove hidden and set display
+  // Show results container - remove hidden class first
   resultsContainer.classList.remove("hidden");
-  resultsContainer.style.display = "block";
   
   console.log("Results container classes:", resultsContainer.className);
   console.log("Results container display:", window.getComputedStyle(resultsContainer).display);
