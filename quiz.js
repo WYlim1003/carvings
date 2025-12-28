@@ -184,110 +184,110 @@ async function submitQuiz() {
 }
 
 function showResults(score, answers) {
-  console.log("showResults called with score:", score, "answers:", answers);
-  
-  // Hide quiz content and show results
-  const quizContent = document.getElementById("quiz-content");
-  const resultsContainer = document.getElementById("results-container");
-  
-  if (!quizContent) {
-    console.error("quiz-content element not found!");
-    return;
-  }
-  
-  if (!resultsContainer) {
-    console.error("results-container element not found!");
-    return;
-  }
-
-  console.log("Hiding quiz content, showing results container");
-  
-  // Hide quiz content
-  quizContent.classList.add("hidden");
-  
-  // Show results container - remove hidden class first
-  resultsContainer.classList.remove("hidden");
-  
-  console.log("Results container classes:", resultsContainer.className);
-  console.log("Results container display:", window.getComputedStyle(resultsContainer).display);
-
-  // Update score display
-  const scoreDisplay = document.getElementById("score-display");
-  if (scoreDisplay) {
-    scoreDisplay.textContent = `${score}/4`;
-  }
-
-  // Get current language for translations
-  const currentLang = (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
-  const dict = translations[currentLang] || translations.en;
-
-  // Set result message based on score
-  const resultsMessage = document.getElementById("results-message");
-  if (resultsMessage) {
-    let message = "";
-    if (score === 4) {
-      message = dict.excellentScore || "Excellent! You got all correct!";
-    } else if (score === 3) {
-      message = dict.goodScore || "Great job! You understand the carving motifs well.";
-    } else if (score === 2) {
-      message = dict.averageScore || "Not bad! Review the motifs to improve your score.";
-    } else if (score === 1) {
-      message = dict.lowScore || "Keep learning! Explore the motif pages to learn more.";
-    } else {
-      message = dict.lowScore || "Try again! Explore the motif pages to learn more.";
-    }
-    resultsMessage.textContent = message;
-  }
-
-  // Show detailed answers
-  const answersList = document.getElementById("answers-list");
-  if (answersList) {
-    const correctSymbol = "✓";
-    const wrongSymbol = "✗";
+  try {
+    console.log("showResults called - score:", score, "answers:", answers);
     
-    const questionLabels = [
-      { num: 1, correct: CORRECT_ANSWERS.q1, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q1.toUpperCase() },
-      { num: 2, correct: CORRECT_ANSWERS.q2, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q2.toUpperCase() },
-      { num: 3, correct: CORRECT_ANSWERS.q3, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q3.toUpperCase() },
-      { num: 4, correct: CORRECT_ANSWERS.q4, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q4.toUpperCase() }
-    ];
+    // Get elements
+    const quizContent = document.getElementById("quiz-content");
+    const resultsContainer = document.getElementById("results-container");
+    
+    if (!resultsContainer) {
+      console.error("CRITICAL: results-container element not found!");
+      alert("Error: Results container not found in page");
+      return;
+    }
 
-    answersList.innerHTML = questionLabels.map((q, index) => {
-      const answerKey = `q${q.num}`;
-      const userAnswer = answers[answerKey];
-      const isCorrect = userAnswer === q.correct;
+    console.log("Before: resultsContainer classes =", resultsContainer.className);
+    
+    // Hide quiz content
+    if (quizContent) {
+      quizContent.classList.add("hidden");
+      console.log("Hidden quiz content");
+    }
+    
+    // Show results - remove hidden class
+    resultsContainer.classList.remove("hidden");
+    console.log("After: resultsContainer classes =", resultsContainer.className);
+
+    // Update score display
+    const scoreDisplay = document.getElementById("score-display");
+    if (scoreDisplay) {
+      scoreDisplay.textContent = `${score}/4`;
+      console.log("Updated score display to:", scoreDisplay.textContent);
+    } else {
+      console.error("Score display element not found!");
+    }
+
+    // Get current language for translations
+    const currentLang = (window.sessionStorage && sessionStorage.getItem('lang')) || 'en';
+    const dict = translations[currentLang] || translations.en;
+
+    // Set result message based on score
+    const resultsMessage = document.getElementById("results-message");
+    if (resultsMessage) {
+      let message = "";
+      if (score === 4) {
+        message = dict.excellentScore || "Excellent! You got all correct!";
+      } else if (score === 3) {
+        message = dict.goodScore || "Great job! You understand the carving motifs well.";
+      } else if (score === 2) {
+        message = dict.averageScore || "Not bad! Review the motifs to improve your score.";
+      } else if (score === 1) {
+        message = dict.lowScore || "Keep learning! Explore the motif pages to learn more.";
+      } else {
+        message = dict.lowScore || "Try again! Explore the motif pages to learn more.";
+      }
+      resultsMessage.textContent = message;
+      console.log("Set results message to:", message);
+    }
+
+    // Show detailed answers
+    const answersList = document.getElementById("answers-list");
+    if (answersList) {
+      const correctSymbol = "✓";
+      const wrongSymbol = "✗";
       
-      return `
-        <div class="answer-item" style="margin: 10px 0; padding: 10px; border-left: 3px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background: ${isCorrect ? '#e8f5e9' : '#ffebee'};">
-          <p style="margin: 0;">
-            <strong>Question ${q.num}:</strong> 
-            <span style="color: ${isCorrect ? '#4CAF50' : '#f44336'}; font-weight: bold;">
-              ${isCorrect ? correctSymbol + " " + (dict.correctAnswer || "Correct") : wrongSymbol + " " + (dict.incorrectAnswer || "Incorrect")}
-            </span>
-          </p>
-          <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">
-            Your answer: <strong>${userAnswer.toUpperCase()}</strong>
-            ${!isCorrect ? ` | ${q.correctText}` : ''}
-          </p>
-        </div>
-      `;
-    }).join('');
-  }
+      const questionLabels = [
+        { num: 1, correct: CORRECT_ANSWERS.q1, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q1.toUpperCase() },
+        { num: 2, correct: CORRECT_ANSWERS.q2, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q2.toUpperCase() },
+        { num: 3, correct: CORRECT_ANSWERS.q3, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q3.toUpperCase() },
+        { num: 4, correct: CORRECT_ANSWERS.q4, correctText: dict.correctAnswerLabel + " " + CORRECT_ANSWERS.q4.toUpperCase() }
+      ];
 
-  // Ensure results are visible
-  console.log("Final check - Results container visible:", resultsContainer.offsetHeight > 0);
-  
-  // Scroll to results after a brief delay to ensure rendering
-  setTimeout(() => {
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    console.log("Scrolled to results");
-  }, 100);
-  
-  // Double-check visibility
-  if (resultsContainer.classList.contains('hidden')) {
-    console.warn("Results container still has hidden class, forcing display");
-    resultsContainer.classList.remove('hidden');
-    resultsContainer.style.display = 'block';
+      answersList.innerHTML = questionLabels.map((q, index) => {
+        const answerKey = `q${q.num}`;
+        const userAnswer = answers[answerKey];
+        const isCorrect = userAnswer === q.correct;
+        
+        return `
+          <div class="answer-item" style="margin: 10px 0; padding: 10px; border-left: 3px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background: ${isCorrect ? '#e8f5e9' : '#ffebee'};">
+            <p style="margin: 0;">
+              <strong>Question ${q.num}:</strong> 
+              <span style="color: ${isCorrect ? '#4CAF50' : '#f44336'}; font-weight: bold;">
+                ${isCorrect ? correctSymbol + " " + (dict.correctAnswer || "Correct") : wrongSymbol + " " + (dict.incorrectAnswer || "Incorrect")}
+              </span>
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #666;">
+              Your answer: <strong>${userAnswer.toUpperCase()}</strong>
+              ${!isCorrect ? ` | ${q.correctText}` : ''}
+            </p>
+          </div>
+        `;
+      }).join('');
+      console.log("Updated answers list");
+    }
+
+    // Scroll to results
+    setTimeout(() => {
+      resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      console.log("Scrolled to results container");
+    }, 100);
+    
+    console.log("showResults completed successfully");
+  } catch (err) {
+    console.error("ERROR in showResults:", err);
+    console.error("Stack:", err.stack);
+    alert("Error showing results: " + err.message);
   }
 }
 
