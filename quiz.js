@@ -292,7 +292,7 @@ function showResults(score, answers) {
   }
 }
 
-async function resetQuiz() {
+/*async function resetQuiz() {
   try {
     // Track retake click (non-blocking)
     fetch("/api/save-click", {
@@ -407,4 +407,32 @@ if (document.readyState === 'loading') {
 } else {
     // DOM already loaded, wait for scripts
     setTimeout(initializeQuiz, 100);
+}*/
+
+async function resetQuiz() {
+  try {
+        const response = await fetch("/save-click", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json();
+        console.log("Retake registered. Total Clicks:", data.totalClicks);
+    } catch (err) {
+        console.error("Failed to register retake click:", err);
+        // We allow the quiz to reset even if the click fails, but log the error
+    }
+
+  document.getElementById("results-container").classList.add("hidden");
+  document.getElementById("quiz-content").classList.remove("hidden");
+
+  document.querySelectorAll("input[type=radio]").forEach(r => (r.checked = false));
+  document.getElementById("user-id-input").value = "";
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("submit-btn")) {
+        generateQuizQuestions();
+        document.getElementById("submit-btn").addEventListener("click", submitQuiz);
+        document.getElementById("retake-btn").addEventListener("click", resetQuiz);
+    }
+});
