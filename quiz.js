@@ -436,6 +436,9 @@
 //     }
 // });
 
+import { supabase } from './supabase.js';
+import { translations, QUIZ_QUESTIONS, CORRECT_ANSWERS, applyLanguage } from './script.js';
+
 function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
     if (!quizContent || typeof QUIZ_QUESTIONS === 'undefined') {
@@ -489,7 +492,7 @@ function generateQuizQuestions() {
     }
     applyLanguage(currentLang);
 }
-import { supabase } from './supabase.js';
+
 async function submitQuiz() {
     console.log("=== SUBMIT QUIZ CALLED ===");
     
