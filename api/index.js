@@ -6,9 +6,19 @@ const app = express();
 app.use(express.json());
 
 // Initialize Supabase with environment variables
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+
+// Validate environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables!');
+  console.error('SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+  console.error('SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
+}
+
 const supabase = createClient(
-  process.env.SUPABASE_URL, 
-  process.env.SUPABASE_ANON_KEY
+  supabaseUrl || '', 
+  supabaseAnonKey || ''
 );
 
 // CORS headers for API routes
@@ -25,7 +35,18 @@ app.use((req, res, next) => {
 // Quiz Submission Route
 app.post('/api/submit-quiz', async (req, res) => {
   try {
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase not configured - missing environment variables');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error: Supabase credentials not set. Please configure SUPABASE_URL and SUPABASE_ANON_KEY in Vercel environment variables.'
+      });
+    }
+
     const { visitorID, question1, question2, question3, question4, score, percentage } = req.body;
+    
+    console.log('Received quiz submission:', { visitorID, question1, question2, question3, question4, score, percentage });
     
     const { data, error } = await supabase
       .from('quiz_submissions')
@@ -42,12 +63,15 @@ app.post('/api/submit-quiz', async (req, res) => {
 
     if (error) {
       console.error("Supabase Error:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
       return res.status(500).json({ 
         success: false, 
-        error: error.message 
+        error: error.message || 'Database error occurred',
+        details: error
       });
     }
 
+    console.log('Quiz submitted successfully:', data);
     return res.status(200).json({ 
       success: true, 
       message: "Quiz submitted successfully!",
@@ -55,9 +79,11 @@ app.post('/api/submit-quiz', async (req, res) => {
     });
   } catch (err) {
     console.error("Server Error:", err);
+    console.error("Error stack:", err.stack);
     return res.status(500).json({ 
       success: false, 
-      error: err.message 
+      error: err.message || 'An unexpected error occurred',
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 });
