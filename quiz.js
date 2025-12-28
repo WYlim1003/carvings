@@ -115,7 +115,10 @@ async function submitQuiz() {
         if (data.success) {
           showResults(score, answers);
         } else {
-          throw new Error(data.error || "Submission failed");
+          // Show detailed error from server
+          const errorMsg = data.error || "Submission failed";
+          const errorCode = data.errorCode ? ` (Code: ${data.errorCode})` : '';
+          throw new Error(errorMsg + errorCode);
         }
       } else {
         const text = await response.text();
@@ -124,7 +127,17 @@ async function submitQuiz() {
       }
     } catch (err) {
       console.error("Error submitting quiz:", err);
-      alert("Failed to submit quiz. Error: " + err.message + "\n\nPlease check your internet connection and try again.");
+      console.error("Full error:", err);
+      
+      // Show more detailed error message
+      let errorMessage = err.message || "Unknown error occurred";
+      if (errorMessage.includes("Row Level Security") || errorMessage.includes("RLS")) {
+        errorMessage += "\n\nPlease check Supabase RLS policies for the quiz_submissions table.";
+      } else if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
+        errorMessage += "\n\nPlease verify the quiz_submissions table exists in your Supabase database.";
+      }
+      
+      alert("Failed to submit quiz.\n\nError: " + errorMessage + "\n\nCheck the browser console (F12) for more details.");
     }
 }
 

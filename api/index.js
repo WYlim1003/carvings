@@ -38,6 +38,8 @@ app.post('/api/submit-quiz', async (req, res) => {
     // Check if Supabase is configured
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Supabase not configured - missing environment variables');
+      console.error('SUPABASE_URL:', supabaseUrl ? 'Set' : 'MISSING');
+      console.error('SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'MISSING');
       return res.status(500).json({ 
         success: false, 
         error: 'Server configuration error: Supabase credentials not set. Please configure SUPABASE_URL and SUPABASE_ANON_KEY in Vercel environment variables.'
@@ -46,39 +48,76 @@ app.post('/api/submit-quiz', async (req, res) => {
 
     const { visitorID, question1, question2, question3, question4, score, percentage } = req.body;
     
+    console.log('=== QUIZ SUBMISSION REQUEST ===');
     console.log('Received quiz submission:', { visitorID, question1, question2, question3, question4, score, percentage });
+    console.log('Supabase URL:', supabaseUrl ? 'Configured' : 'Missing');
+    console.log('Supabase Key:', supabaseAnonKey ? 'Configured' : 'Missing');
     
-    const { data, error } = await supabase
-      .from('quiz_submissions')
-      .insert([{ 
-        visitor_id: visitorID, 
-        q1: question1, 
-        q2: question2, 
-        q3: question3, 
-        q4: question4, 
-        score, 
-        percentage 
-      }])
-      .select();
-
-    if (error) {
-      console.error("Supabase Error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
-      return res.status(500).json({ 
+    // Validate required fields
+    if (!visitorID || question1 === undefined || question2 === undefined || question3 === undefined || question4 === undefined) {
+      console.error('Missing required fields in request');
+      return res.status(400).json({ 
         success: false, 
-        error: error.message || 'Database error occurred',
-        details: error
+        error: 'Missing required fields: visitorID and all question answers are required'
       });
     }
 
-    console.log('Quiz submitted successfully:', data);
+    // Prepare data for insertion
+    const insertData = { 
+      visitor_id: visitorID, 
+      q1: question1, 
+      q2: question2, 
+      q3: question3, 
+      q4: question4, 
+      score: parseInt(score) || 0, 
+      percentage: parseFloat(percentage) || 0
+    };
+    
+    console.log('Inserting data:', insertData);
+    
+    const { data, error } = await supabase
+      .from('quiz_submissions')
+      .insert([insertData])
+      .select();
+
+    if (error) {
+      console.error("=== SUPABASE ERROR ===");
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      console.error("Error hint:", error.hint);
+      
+      // Provide more helpful error messages
+      let errorMessage = error.message || 'Database error occurred';
+      if (error.code === 'PGRST116') {
+        errorMessage = 'Table "quiz_submissions" not found. Please check your Supabase database schema.';
+      } else if (error.code === '23505') {
+        errorMessage = 'Duplicate entry. This submission may have already been recorded.';
+      } else if (error.code === '42501') {
+        errorMessage = 'Permission denied. Please check Supabase Row Level Security (RLS) policies for the quiz_submissions table.';
+      } else if (error.code === '42P01') {
+        errorMessage = 'Table does not exist. Please create the quiz_submissions table in Supabase.';
+      }
+      
+      return res.status(500).json({ 
+        success: false, 
+        error: errorMessage,
+        errorCode: error.code,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
+    }
+
+    console.log('=== QUIZ SUBMITTED SUCCESSFULLY ===');
+    console.log('Returned data:', JSON.stringify(data, null, 2));
+    
     return res.status(200).json({ 
       success: true, 
       message: "Quiz submitted successfully!",
       data 
     });
   } catch (err) {
-    console.error("Server Error:", err);
+    console.error("=== SERVER EXCEPTION ===");
+    console.error("Error message:", err.message);
     console.error("Error stack:", err.stack);
     return res.status(500).json({ 
       success: false, 
