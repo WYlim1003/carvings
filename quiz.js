@@ -301,7 +301,6 @@ async function resetQuiz() {
         console.log("Retake registered. Total Clicks:", data.totalClicks);
     } catch (err) {
         console.error("Failed to register retake click:", err);
-        // We allow the quiz to reset even if the click fails, but log the error
     }
 
   document.getElementById("results-container").classList.add("hidden");
