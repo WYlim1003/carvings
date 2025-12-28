@@ -1,5 +1,3 @@
-import { supabase } from './supabase.js';
-
 function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
     if (!quizContent || typeof QUIZ_QUESTIONS === 'undefined') {
@@ -186,9 +184,23 @@ async function resetQuiz() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById("submit-btn")) {
-        generateQuizQuestions();
-        document.getElementById("submit-btn").addEventListener("click", submitQuiz);
-        document.getElementById("retake-btn").addEventListener("click", resetQuiz);
-    }
+    // Wait a tiny bit to ensure all scripts are loaded
+    setTimeout(() => {
+        if (document.getElementById("submit-btn")) {
+            if (typeof QUIZ_QUESTIONS === 'undefined' || typeof translations === 'undefined') {
+                console.error("Quiz dependencies not loaded. Make sure script.js loads before quiz.js");
+                const quizContent = document.getElementById("quiz-content");
+                if (quizContent) {
+                    quizContent.innerHTML = "<p style='color: red; padding: 20px;'>Error: Quiz data not loaded. Please refresh the page.</p>";
+                }
+                return;
+            }
+            generateQuizQuestions();
+            document.getElementById("submit-btn").addEventListener("click", submitQuiz);
+            const retakeBtn = document.getElementById("retake-btn");
+            if (retakeBtn) {
+                retakeBtn.addEventListener("click", resetQuiz);
+            }
+        }
+    }, 100);
 });
