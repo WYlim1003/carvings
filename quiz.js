@@ -196,24 +196,78 @@ async function resetQuiz() {
   document.getElementById("user-id-input").value = "";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Wait a tiny bit to ensure all scripts are loaded
-    setTimeout(() => {
-        if (document.getElementById("submit-btn")) {
-            if (typeof QUIZ_QUESTIONS === 'undefined' || typeof translations === 'undefined') {
-                console.error("Quiz dependencies not loaded. Make sure script.js loads before quiz.js");
-                const quizContent = document.getElementById("quiz-content");
-                if (quizContent) {
-                    quizContent.innerHTML = "<p style='color: red; padding: 20px;'>Error: Quiz data not loaded. Please refresh the page.</p>";
-                }
-                return;
-            }
-            generateQuizQuestions();
-            document.getElementById("submit-btn").addEventListener("click", submitQuiz);
-            const retakeBtn = document.getElementById("retake-btn");
-            if (retakeBtn) {
-                retakeBtn.addEventListener("click", resetQuiz);
-            }
+// Wait for both DOM and scripts to be ready
+function initializeQuiz() {
+    const submitBtn = document.getElementById("submit-btn");
+    if (!submitBtn) {
+        console.warn("Submit button not found, quiz may not be on this page");
+        return;
+    }
+
+    // Check if dependencies are loaded
+    const missingDeps = [];
+    if (typeof QUIZ_QUESTIONS === 'undefined') missingDeps.push('QUIZ_QUESTIONS');
+    if (typeof translations === 'undefined') missingDeps.push('translations');
+    if (typeof CORRECT_ANSWERS === 'undefined') missingDeps.push('CORRECT_ANSWERS');
+
+    if (missingDeps.length > 0) {
+        console.error("Missing dependencies:", missingDeps);
+        console.error("This usually means script.js didn't load or has an error.");
+        console.error("Check the browser console for script.js errors.");
+        
+        const quizContent = document.getElementById("quiz-content");
+        if (quizContent) {
+            quizContent.innerHTML = `
+                <div style='color: red; padding: 20px; border: 2px solid red; border-radius: 5px; margin: 20px 0;'>
+                    <h3>Error: Quiz data not loaded</h3>
+                    <p><strong>Missing:</strong> ${missingDeps.join(', ')}</p>
+                    <p>Please check:</p>
+                    <ul>
+                        <li>Open browser console (F12) to see detailed errors</li>
+                        <li>Make sure script.js is loading correctly (check Network tab)</li>
+                        <li>Look for JavaScript errors in the console</li>
+                        <li>Try refreshing the page (Ctrl+F5 or Cmd+Shift+R)</li>
+                    </ul>
+                    <p style='margin-top: 10px; font-size: 0.9em; color: #666;'>
+                        If the problem persists, check that script.js exists and has no syntax errors.
+                    </p>
+                </div>
+            `;
         }
-    }, 100);
-});
+        return;
+    }
+
+    // All dependencies loaded, initialize quiz
+    try {
+        generateQuizQuestions();
+        submitBtn.addEventListener("click", submitQuiz);
+        const retakeBtn = document.getElementById("retake-btn");
+        if (retakeBtn) {
+            retakeBtn.addEventListener("click", resetQuiz);
+        }
+        console.log("Quiz initialized successfully");
+    } catch (err) {
+        console.error("Error initializing quiz:", err);
+        const quizContent = document.getElementById("quiz-content");
+        if (quizContent) {
+            quizContent.innerHTML = `
+                <div style='color: red; padding: 20px; border: 2px solid red; border-radius: 5px; margin: 20px 0;'>
+                    <h3>Error initializing quiz</h3>
+                    <p>${err.message}</p>
+                    <p>Please check the browser console (F12) for more details.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Try multiple initialization strategies
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", () => {
+        // Wait a bit for scripts to execute
+        setTimeout(initializeQuiz, 100);
+    });
+} else {
+    // DOM already loaded, wait for scripts
+    setTimeout(initializeQuiz, 100);
+}
