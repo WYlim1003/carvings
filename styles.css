@@ -670,6 +670,12 @@ h2 {
   transition: all 0.2s ease;
 }
 
+.btn-warning:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+}
+
 .btn-primary {
   background: linear-gradient(135deg, var(--primary), var(--accent-gold));
   color: #fff;
@@ -706,6 +712,11 @@ h2 {
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-soft);
   text-align: center;
+}
+
+.results-container:not(.hidden) {
+  display: block !important;
+  visibility: visible !important;
 }
 
 .score-display {
@@ -767,6 +778,14 @@ h2 {
 }
 
 /* Admin Panel */
+.admin-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
 .admin-panel {
   position: fixed;
   bottom: 20px;
@@ -798,6 +817,7 @@ h2 {
 
 .hidden {
   display: none !important;
+  visibility: hidden !important;
 }
 
 /* Footer */
