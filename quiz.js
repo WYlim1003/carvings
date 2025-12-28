@@ -1,3 +1,5 @@
+import { supabase } from './supabase.js';
+
 function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
     if (!quizContent || typeof QUIZ_QUESTIONS === 'undefined') {
