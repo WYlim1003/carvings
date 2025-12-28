@@ -106,9 +106,50 @@ app.post('/api/save-click', async (req, res) => {
   }
 });
 
+// Helper function to convert array of objects to CSV
+function convertToCSV(data) {
+  if (!data || data.length === 0) {
+    return '';
+  }
+
+  // Get headers from first object
+  const headers = Object.keys(data[0]);
+  
+  // Create CSV header row
+  const csvRows = [headers.join(',')];
+  
+  // Create CSV data rows
+  for (const row of data) {
+    const values = headers.map(header => {
+      const value = row[header];
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        return '';
+      }
+      // Escape quotes and wrap in quotes if contains comma, newline, or quote
+      const stringValue = String(value);
+      if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+  
+  return csvRows.join('\n');
+}
+
 // Export Submissions Data
 app.get('/api/export/submissions', async (req, res) => {
   try {
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error: Supabase credentials not set.'
+      });
+    }
+
     const { data, error } = await supabase
       .from('quiz_submissions')
       .select('*')
@@ -122,7 +163,16 @@ app.get('/api/export/submissions', async (req, res) => {
       });
     }
 
-    return res.status(200).json(data);
+    // Convert to CSV
+    const csv = convertToCSV(data || []);
+    
+    // Set headers for CSV download
+    const filename = `quiz-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Add BOM for Excel compatibility with special characters and send CSV
+    return res.status(200).send('\ufeff' + csv);
   } catch (err) {
     console.error("Export Error:", err);
     return res.status(500).json({ 
@@ -135,6 +185,14 @@ app.get('/api/export/submissions', async (req, res) => {
 // Export Stats Data
 app.get('/api/export/stats', async (req, res) => {
   try {
+    // Check if Supabase is configured
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server configuration error: Supabase credentials not set.'
+      });
+    }
+
     const { data, error } = await supabase
       .from('quiz_submissions')
       .select('score, percentage, created_at');
@@ -148,14 +206,35 @@ app.get('/api/export/stats', async (req, res) => {
     }
 
     // Calculate statistics
-    const stats = {
-      totalSubmissions: data.length,
-      averageScore: data.reduce((acc, item) => acc + item.score, 0) / data.length || 0,
-      averagePercentage: data.reduce((acc, item) => acc + item.percentage, 0) / data.length || 0,
-      submissions: data
-    };
+    const totalSubmissions = data.length;
+    const averageScore = data.reduce((acc, item) => acc + (item.score || 0), 0) / totalSubmissions || 0;
+    const averagePercentage = data.reduce((acc, item) => acc + (item.percentage || 0), 0) / totalSubmissions || 0;
 
-    return res.status(200).json(stats);
+    // Convert to CSV format
+    const csvRows = ['Metric,Value,Date'];
+    csvRows.push(`Total Submissions,${totalSubmissions},`);
+    csvRows.push(`Average Score,${averageScore.toFixed(2)},`);
+    csvRows.push(`Average Percentage,${averagePercentage.toFixed(2)},`);
+    csvRows.push(','); // Empty row
+    csvRows.push('Individual Results,,');
+    csvRows.push('Score,Percentage,Date');
+    
+    data.forEach(item => {
+      const score = item.score || '';
+      const percentage = item.percentage || '';
+      const date = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+      csvRows.push(`${score},${percentage},"${date}"`);
+    });
+
+    const csv = csvRows.join('\n');
+    
+    // Set headers for CSV download
+    const filename = `quiz-stats-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    // Add BOM for Excel compatibility with special characters and send CSV
+    return res.status(200).send('\ufeff' + csv);
   } catch (err) {
     console.error("Stats Error:", err);
     return res.status(500).json({ 
