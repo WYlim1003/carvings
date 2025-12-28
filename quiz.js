@@ -436,7 +436,7 @@
 //     }
 // });
 
-import { supabase } from './supabaseClient.js';
+import { supabase } from './supabase.js';
 
 function generateQuizQuestions() {
     const quizContent = document.getElementById("quiz-content");
