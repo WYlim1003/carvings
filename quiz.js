@@ -84,6 +84,14 @@ async function submitQuiz() {
       percentage,
     };
 
+    // Show loading state on submit button
+    const submitBtn = document.getElementById("submit-btn");
+    const originalSubmitText = submitBtn ? submitBtn.textContent : "";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+    }
+
     try {
       console.log("Submitting quiz with payload:", payload);
       
@@ -112,8 +120,15 @@ async function submitQuiz() {
         const data = await response.json();
         console.log("Quiz submitted successfully:", data);
         
+        // Restore submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalSubmitText;
+        }
+        
         if (data.success) {
           // Show results after successful submission
+          console.log("Submission successful, showing results");
           showResults(score, answers);
         } else {
           // Even if submission failed, show results locally
@@ -129,6 +144,13 @@ async function submitQuiz() {
       } else {
         const text = await response.text();
         console.error("Server did not return JSON. Response:", text);
+        
+        // Restore submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalSubmitText;
+        }
+        
         // Still show results even if response format is wrong
         showResults(score, answers);
         throw new Error("Server did not return JSON response");
@@ -136,6 +158,12 @@ async function submitQuiz() {
     } catch (err) {
       console.error("Error submitting quiz:", err);
       console.error("Full error:", err);
+      
+      // Restore submit button
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalSubmitText;
+      }
       
       // Show results locally even if submission failed
       console.log("Showing results locally despite submission error");
@@ -156,17 +184,33 @@ async function submitQuiz() {
 }
 
 function showResults(score, answers) {
+  console.log("showResults called with score:", score, "answers:", answers);
+  
   // Hide quiz content and show results
   const quizContent = document.getElementById("quiz-content");
   const resultsContainer = document.getElementById("results-container");
   
-  if (!quizContent || !resultsContainer) {
-    console.error("Results container or quiz content not found");
+  if (!quizContent) {
+    console.error("quiz-content element not found!");
+    return;
+  }
+  
+  if (!resultsContainer) {
+    console.error("results-container element not found!");
     return;
   }
 
+  console.log("Hiding quiz content, showing results container");
+  
+  // Hide quiz content
   quizContent.classList.add("hidden");
+  
+  // Show results container - use both remove hidden and set display
   resultsContainer.classList.remove("hidden");
+  resultsContainer.style.display = "block";
+  
+  console.log("Results container classes:", resultsContainer.className);
+  console.log("Results container display:", window.getComputedStyle(resultsContainer).display);
 
   // Update score display
   const scoreDisplay = document.getElementById("score-display");
@@ -231,8 +275,21 @@ function showResults(score, answers) {
     }).join('');
   }
 
-  // Scroll to results
-  resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Ensure results are visible
+  console.log("Final check - Results container visible:", resultsContainer.offsetHeight > 0);
+  
+  // Scroll to results after a brief delay to ensure rendering
+  setTimeout(() => {
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    console.log("Scrolled to results");
+  }, 100);
+  
+  // Double-check visibility
+  if (resultsContainer.classList.contains('hidden')) {
+    console.warn("Results container still has hidden class, forcing display");
+    resultsContainer.classList.remove('hidden');
+    resultsContainer.style.display = 'block';
+  }
 }
 
 async function resetQuiz() {
