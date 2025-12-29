@@ -55,7 +55,7 @@ function generateQuizQuestions() {
 async function submitQuiz() {
     const visitorID = document.getElementById("user-id-input").value.trim() || `anon-${Math.floor(Math.random() * 1000000)}`;
 
-    // Collect answers
+    // 1. Collect answers
     const answers = {
         q1: document.querySelector("input[name='q1']:checked")?.value || null,
         q2: document.querySelector("input[name='q2']:checked")?.value || null,
@@ -63,19 +63,45 @@ async function submitQuiz() {
         q4: document.querySelector("input[name='q4']:checked")?.value || null
     };
 
-    // Ensure all questions are answered
+    // 2. Ensure all questions are answered
     if (!answers.q1 || !answers.q2 || !answers.q3 || !answers.q4) {
         alert("Please answer all questions before submitting.");
         return;
     }
 
-    // Calculate score
+    // 3. Calculate score
     let score = 0;
     for (let q in CORRECT_ANSWERS) {
         if (answers[q] === CORRECT_ANSWERS[q]) score++;
     }
-
     const percentage = (score / 4) * 100;
+
+    try {
+        const response = await fetch("/api/submit-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                visitorID: visitorID,
+                question1: answers.q1,
+                question2: answers.q2,
+                question3: answers.q3,
+                question4: answers.q4,
+                score: score,
+                percentage: percentage
+            })
+        });
+
+        const result = await response.json();
+        if (!result.success) {
+            console.error("Supabase Error:", result.error);
+        } else {
+            console.log("Successfully saved to Supabase!");
+        }
+    } catch (err) {
+        console.error("Failed to connect to API:", err);
+    }
+
+    // 5. UI Updates (Existing logic)
     const quizContent = document.getElementById("quiz-content");
     if (quizContent) quizContent.classList.add("hidden");
 
@@ -87,32 +113,25 @@ async function submitQuiz() {
 
     const resultsMessage = document.getElementById("results-message");
     if (resultsMessage) {
-        let message = "";
-        if (score === 4) message = "Excellent! You got all correct!";
-        else if (score === 3) message = "Great job! You understand the carving motifs well.";
-        else if (score === 2) message = "Not bad! Review the motifs to improve your score.";
-        else message = "Keep learning! Explore the motif pages to learn more.";
+        let message = (score === 4) ? "Excellent! You got all correct!" :
+                     (score === 3) ? "Great job!" : "Keep learning!";
         resultsMessage.textContent = message;
     }
 
-    // Update detailed answers
+    // Update detailed list
     const answersList = document.getElementById("answers-list");
     if (answersList) {
         answersList.innerHTML = Object.keys(answers).map((q, index) => {
-            const userAnswer = answers[q].toUpperCase();
-            const correctAnswer = CORRECT_ANSWERS[q].toUpperCase();
-            const isCorrect = userAnswer === correctAnswer;
-
+            const isCorrect = answers[q] === CORRECT_ANSWERS[q];
             return `
                 <div class="answer-item" style="margin:10px 0; padding:10px; border-left:4px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background:#f9f9f9;">
                     <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-                    <p>Your answer: ${userAnswer} | Correct: ${correctAnswer}</p>
+                    <p>Your answer: ${answers[q].toUpperCase()} | Correct: ${CORRECT_ANSWERS[q].toUpperCase()}</p>
                 </div>
             `;
         }).join('');
-      }
-
-  }
+    }
+}
 
   function showResults(score, answers) {
   document.getElementById("quiz-content").classList.add("hidden");
