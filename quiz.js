@@ -52,84 +52,147 @@ function generateQuizQuestions() {
     applyLanguage(currentLang);
 }
 
-async function submitQuiz() {
-    const visitorID = document.getElementById("user-id-input").value.trim() || `anon-${Math.floor(Math.random() * 1000000)}`;
+// async function submitQuiz() {
+//     const visitorID = document.getElementById("user-id-input").value.trim() || `anon-${Math.floor(Math.random() * 1000000)}`;
 
-    // 1. Collect answers
+//     // 1. Collect answers
+//     const answers = {
+//         q1: document.querySelector("input[name='q1']:checked")?.value || null,
+//         q2: document.querySelector("input[name='q2']:checked")?.value || null,
+//         q3: document.querySelector("input[name='q3']:checked")?.value || null,
+//         q4: document.querySelector("input[name='q4']:checked")?.value || null
+//     };
+
+//     // 2. Ensure all questions are answered
+//     if (!answers.q1 || !answers.q2 || !answers.q3 || !answers.q4) {
+//         alert("Please answer all questions before submitting.");
+//         return;
+//     }
+
+//     // 3. Calculate score
+//     let score = 0;
+//     for (let q in CORRECT_ANSWERS) {
+//         if (answers[q] === CORRECT_ANSWERS[q]) score++;
+//     }
+//     const percentage = (score / 4) * 100;
+
+//     try {
+//         const response = await fetch("/api/submit-quiz", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//                 visitorID: visitorID,
+//                 question1: answers.q1,
+//                 question2: answers.q2,
+//                 question3: answers.q3,
+//                 question4: answers.q4,
+//                 score: score,
+//                 percentage: percentage
+//             })
+//         });
+
+//         const result = await response.json();
+//         if (!result.success) {
+//             console.error("Supabase Error:", result.error);
+//         } else {
+//             console.log("Successfully saved to Supabase!");
+//         }
+//     } catch (err) {
+//         console.error("Failed to connect to API:", err);
+//     }
+
+//     // 5. UI Updates (Existing logic)
+//     const quizContent = document.getElementById("quiz-content");
+//     if (quizContent) quizContent.classList.add("hidden");
+
+//     const resultsContainer = document.getElementById("results-container");
+//     if (resultsContainer) resultsContainer.classList.remove("hidden");
+
+//     const scoreDisplay = document.getElementById("score-display");
+//     if (scoreDisplay) scoreDisplay.textContent = `${score}/4`;
+
+//     const resultsMessage = document.getElementById("results-message");
+//     if (resultsMessage) {
+//         let message = (score === 4) ? "Excellent! You got all correct!" :
+//                      (score === 3) ? "Great job!" : "Keep learning!";
+//         resultsMessage.textContent = message;
+//     }
+
+//     // Update detailed list
+//     const answersList = document.getElementById("answers-list");
+//     if (answersList) {
+//         answersList.innerHTML = Object.keys(answers).map((q, index) => {
+//             const isCorrect = answers[q] === CORRECT_ANSWERS[q];
+//             return `
+//                 <div class="answer-item" style="margin:10px 0; padding:10px; border-left:4px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background:#f9f9f9;">
+//                     <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
+//                     <p>Your answer: ${answers[q].toUpperCase()} | Correct: ${CORRECT_ANSWERS[q].toUpperCase()}</p>
+//                 </div>
+//             `;
+//         }).join('');
+//     }
+// }
+
+async function submitQuiz() {
+    const submitBtn = document.getElementById("submit-btn");
+    const visitorIDInput = document.getElementById("user-id-input");
+    const visitorID = visitorIDInput ? visitorIDInput.value.trim() : `anon-${Math.floor(Math.random() * 1000000)}`;
+
+    // 1. Collect answers using the names the BACKEND expects
     const answers = {
-        q1: document.querySelector("input[name='q1']:checked")?.value || null,
-        q2: document.querySelector("input[name='q2']:checked")?.value || null,
-        q3: document.querySelector("input[name='q3']:checked")?.value || null,
-        q4: document.querySelector("input[name='q4']:checked")?.value || null
+        visitorID: visitorID,
+        question1: document.querySelector("input[name='q1']:checked")?.value || null,
+        question2: document.querySelector("input[name='q2']:checked")?.value || null,
+        question3: document.querySelector("input[name='q3']:checked")?.value || null,
+        question4: document.querySelector("input[name='q4']:checked")?.value || null
     };
 
-    // 2. Ensure all questions are answered
-    if (!answers.q1 || !answers.q2 || !answers.q3 || !answers.q4) {
+    // 2. Validate
+    if (!answers.question1 || !answers.question2 || !answers.question3 || !answers.question4) {
         alert("Please answer all questions before submitting.");
         return;
     }
 
-    // 3. Calculate score
+    // 3. Prevent multiple clicks and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    // 4. Calculate score for the database
     let score = 0;
-    for (let q in CORRECT_ANSWERS) {
-        if (answers[q] === CORRECT_ANSWERS[q]) score++;
-    }
-    const percentage = (score / 4) * 100;
+    const CORRECT_ANSWERS = { q1: 'B', q2: 'B', q3: 'A', q4: 'C' }; // Ensure these match your actual correct answers
+    if (answers.question1 === CORRECT_ANSWERS.q1) score++;
+    if (answers.question2 === CORRECT_ANSWERS.q2) score++;
+    if (answers.question3 === CORRECT_ANSWERS.q3) score++;
+    if (answers.question4 === CORRECT_ANSWERS.q4) score++;
+    
+    const payload = {
+        ...answers,
+        score: score,
+        percentage: (score / 4) * 100
+    };
 
     try {
         const response = await fetch("/api/submit-quiz", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                visitorID: visitorID,
-                question1: answers.q1,
-                question2: answers.q2,
-                question3: answers.q3,
-                question4: answers.q4,
-                score: score,
-                percentage: percentage
-            })
+            body: JSON.stringify(payload)
         });
 
         const result = await response.json();
-        if (!result.success) {
-            console.error("Supabase Error:", result.error);
+
+        if (result.success) {
+            console.log("Successfully saved!");
+            showResults(score, answers); // Call your UI update function
         } else {
-            console.log("Successfully saved to Supabase!");
+            throw new Error(result.error || "Unknown server error");
         }
     } catch (err) {
-        console.error("Failed to connect to API:", err);
-    }
-
-    // 5. UI Updates (Existing logic)
-    const quizContent = document.getElementById("quiz-content");
-    if (quizContent) quizContent.classList.add("hidden");
-
-    const resultsContainer = document.getElementById("results-container");
-    if (resultsContainer) resultsContainer.classList.remove("hidden");
-
-    const scoreDisplay = document.getElementById("score-display");
-    if (scoreDisplay) scoreDisplay.textContent = `${score}/4`;
-
-    const resultsMessage = document.getElementById("results-message");
-    if (resultsMessage) {
-        let message = (score === 4) ? "Excellent! You got all correct!" :
-                     (score === 3) ? "Great job!" : "Keep learning!";
-        resultsMessage.textContent = message;
-    }
-
-    // Update detailed list
-    const answersList = document.getElementById("answers-list");
-    if (answersList) {
-        answersList.innerHTML = Object.keys(answers).map((q, index) => {
-            const isCorrect = answers[q] === CORRECT_ANSWERS[q];
-            return `
-                <div class="answer-item" style="margin:10px 0; padding:10px; border-left:4px solid ${isCorrect ? '#4CAF50' : '#f44336'}; background:#f9f9f9;">
-                    <p><strong>Question ${index + 1}:</strong> ${isCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-                    <p>Your answer: ${answers[q].toUpperCase()} | Correct: ${CORRECT_ANSWERS[q].toUpperCase()}</p>
-                </div>
-            `;
-        }).join('');
+        console.error("Submission error:", err);
+        alert("Failed to submit: " + err.message);
+        
+        // IMPORTANT: Reset button so user can try again
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Quiz";
     }
 }
 
